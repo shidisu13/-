@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>耶气满满 · 销售数据看板</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #f5f7fa; --card: #ffffff; --primary: #1a73e8; --success: #0d9488;
+    --warning: #f59e0b; --danger: #ef4444; --text: #1e293b; --muted: #64748b; --border: #e2e8f0;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background:var(--bg); color:var(--text); line-height:1.6; }
+  .container { max-width:1400px; margin:0 auto; padding:24px; }
+
+  .header { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:16px; }
+  .header h1 { font-size:28px; font-weight:700; }
+  .header-right { display:flex; align-items:center; gap:12px; }
+
+  /* 日期选择器 */
+  .date-range { display:flex; align-items:center; gap:8px; background:var(--card); padding:8px 16px; border-radius:12px; box-shadow:0 1px 3px rgba(0,0,0,0.06); }
+  .date-range select { border:1px solid var(--border); border-radius:8px; padding:8px 12px; font-size:14px; background:#fff; color:var(--text); cursor:pointer; outline:none; min-width:130px; }
+  .date-range select:focus { border-color:var(--primary); }
+  .date-range span { color:var(--muted); font-size:14px; }
+  .date-range .quick-btn { padding:8px 14px; border:1px solid var(--border); border-radius:8px; background:#fff; cursor:pointer; font-size:13px; white-space:nowrap; transition:all 0.2s; }
+  .date-range .quick-btn:hover { background:var(--primary); color:#fff; border-color:var(--primary); }
+  .date-range .quick-btn.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+  .badge { background:var(--primary); color:#fff; padding:4px 16px; border-radius:20px; font-size:13px; white-space:nowrap; }
+
+  .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px; margin-bottom:24px; }
+  .kpi-card { background:var(--card); border-radius:12px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,0.06); }
+  .kpi-card .label { font-size:13px; color:var(--muted); margin-bottom:4px; }
+  .kpi-card .value { font-size:28px; font-weight:700; }
+  .kpi-card .change { font-size:12px; margin-top:4px; }
+
+  .chart-row { display:grid; grid-template-columns:2fr 1fr; gap:16px; margin-bottom:24px; }
+  .chart-row.even { grid-template-columns:1fr 1fr; }
+  .chart-card { background:var(--card); border-radius:12px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,0.06); }
+  .chart-card h3 { font-size:16px; margin-bottom:16px; color:var(--text); }
+  .chart-card canvas { max-height:320px; }
+
+  .table-card { background:var(--card); border-radius:12px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,0.06); margin-bottom:24px; overflow-x:auto; }
+  .table-card h3 { font-size:16px; margin-bottom:16px; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th { background:#f8fafc; padding:10px 12px; text-align:right; font-weight:600; color:var(--muted); border-bottom:2px solid var(--border); white-space:nowrap; }
+  th:first-child, td:first-child { text-align:left; }
+  td { padding:8px 12px; border-bottom:1px solid var(--border); text-align:right; }
+  .tag-up { color:var(--success); font-weight:600; }
+  .tag-down { color:var(--danger); font-weight:600; }
+  .weekend-row { background:#f8fafc; }
+
+  .analysis-section { background:var(--card); border-radius:12px; padding:24px; box-shadow:0 1px 3px rgba(0,0,0,0.06); margin-bottom:24px; }
+  .analysis-section h3 { font-size:18px; margin-bottom:16px; border-left:4px solid var(--primary); padding-left:12px; }
+  .analysis-section p { margin-bottom:12px; color:#475569; }
+  .analysis-section ul { margin-left:20px; margin-bottom:12px; }
+  .analysis-section li { margin-bottom:6px; color:#475569; }
+  .insight-box { background:#f0f9ff; border-left:4px solid var(--primary); padding:12px 16px; border-radius:0 8px 8px 0; margin:12px 0; }
+  .insight-box.warn { background:#fffbeb; border-left-color:var(--warning); }
+
+  .summary-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+  .summary-tag { background:#e8f0fe; color:var(--primary); padding:2px 10px; border-radius:12px; font-size:12px; font-weight:600; }
+
+  @media (max-width:768px) { .chart-row,.chart-row.even { grid-template-columns:1fr; } .header { flex-direction:column; align-items:flex-start; } }
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <h1>🥥 耶气满满 · 销售数据看板</h1>
+  <div class="header-right">
+    <div class="date-range">
+      <button class="quick-btn active" onclick="quickRange('month',4)">4月</button>
+      <button class="quick-btn" onclick="quickRange('month',5)">5月</button>
+      <button class="quick-btn" onclick="quickRange('month',6)">6月</button>
+      <button class="quick-btn" onclick="quickRange('month',7)">7月</button>
+      <button class="quick-btn" onclick="quickRange('all')">全部</button>
+      <span>或</span>
+      <select id="startDate" onchange="onDateChange()"></select>
+      <span>至</span>
+      <select id="endDate" onchange="onDateChange()"></select>
+    </div>
+    <span class="badge" id="rangeBadge">全部数据</span>
+  </div>
+</div>
+
+<!-- KPI 指标卡 -->
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="label">累计成交金额</div>
+    <div class="value" id="kpiRevenue">¥—</div>
+    <div class="change" id="kpiDailyRevenue">日均 ¥—</div>
+  </div>
+  <div class="kpi-card">
+    <div class="label">累计成交单量</div>
+    <div class="value" id="kpiOrders">—</div>
+    <div class="change" id="kpiDailyOrders">日均 — 单</div>
+  </div>
+  <div class="kpi-card">
+    <div class="label">累计访客数</div>
+    <div class="value" id="kpiVisitors">—</div>
+    <div class="change" id="kpiDailyVisitors">日均 — 人</div>
+  </div>
+  <div class="kpi-card">
+    <div class="label">平均转化率</div>
+    <div class="value" id="kpiCVR">—%</div>
+    <div class="change" id="kpiBuyers">日均成交 — 人</div>
+  </div>
+  <div class="kpi-card">
+    <div class="label">平均客单价</div>
+    <div class="value" id="kpiASP">¥—</div>
+    <div class="change" id="kpiASPCompare">—</div>
+  </div>
+  <div class="kpi-card">
+    <div class="label">累计浏览量</div>
+    <div class="value" id="kpiViews">—</div>
+    <div class="change" id="kpiDailyViews">日均 — 次</div>
+  </div>
+</div>
+
+<!-- 图表行 -->
+<div class="chart-row">
+  <div class="chart-card">
+    <h3>📈 每日成交金额趋势</h3>
+    <canvas id="revenueChart"></canvas>
+  </div>
+  <div class="chart-card">
+    <h3>🔄 转化率 & 客单价趋势</h3>
+    <canvas id="cvrChart"></canvas>
+  </div>
+</div>
+
+<div class="chart-row even">
+  <div class="chart-card">
+    <h3>📊 周度成交金额对比</h3>
+    <canvas id="weeklyChart"></canvas>
+  </div>
+  <div class="chart-card">
+    <h3>🏷️ 月度趋势总览</h3>
+    <canvas id="monthlyChart"></canvas>
+  </div>
+</div>
+
+<!-- 明细表 -->
+<div class="table-card">
+  <h3>📋 店铺销售数据明细</h3>
+  <div class="summary-row" id="summaryRow"></div>
+  <table>
+    <thead>
+      <tr><th>日期</th><th>浏览量</th><th>访客数</th><th>成交人数</th><th>转化率</th><th>成交单量</th><th>成交件数</th><th>成交金额</th><th>客单价</th><th>vs前日</th></tr>
+    </thead>
+    <tbody id="dailyTable"></tbody>
+  </table>
+</div>
+
+<!-- 分析报告 -->
+<div class="analysis-section" id="analysisSection">
+  <h3>📝 自动分析报告</h3>
+  <div id="analysisContent"></div>
+</div>
+
+</div>
+
+<script>
+// ============ 全量数据 ============
+const ALL_DATA = [
+  // 4月
+  {date:'2026-04-01',label:'4/1',month:4,day:1,dow:3,views:6834,visitors:2219,buyers:887,cvr:39.97,orders:976,items:1302,revenue:41917,asp:47},
+  {date:'2026-04-02',label:'4/2',month:4,day:2,dow:4,views:7894,visitors:2621,buyers:883,cvr:33.69,orders:967,items:1388,revenue:43424,asp:49},
+  {date:'2026-04-03',label:'4/3',month:4,day:3,dow:5,views:6836,visitors:2153,buyers:838,cvr:38.92,orders:917,items:1200,revenue:38005,asp:45},
+  {date:'2026-04-04',label:'4/4',month:4,day:4,dow:6,views:6582,visitors:2101,buyers:860,cvr:40.93,orders:958,items:1331,revenue:40987,asp:48},
+  {date:'2026-04-05',label:'4/5',month:4,day:5,dow:0,views:6201,visitors:2114,buyers:807,cvr:38.17,orders:902,items:1237,revenue:37227,asp:46},
+  {date:'2026-04-06',label:'4/6',month:4,day:6,dow:1,views:7174,visitors:2430,buyers:911,cvr:37.49,orders:997,items:1339,revenue:42643,asp:47},
+  {date:'2026-04-07',label:'4/7',month:4,day:7,dow:2,views:6657,visitors:2280,buyers:883,cvr:38.73,orders:960,items:1346,revenue:41041,asp:46},
+  {date:'2026-04-08',label:'4/8',month:4,day:8,dow:3,views:7219,visitors:2385,buyers:839,cvr:35.18,orders:924,items:1206,revenue:41419,asp:49},
+  {date:'2026-04-09',label:'4/9',month:4,day:9,dow:4,views:7316,visitors:2295,buyers:915,cvr:39.87,orders:999,items:1368,revenue:47261,asp:52},
+  {date:'2026-04-10',label:'4/10',month:4,day:10,dow:5,views:7955,visitors:2622,buyers:928,cvr:35.39,orders:1011,items:1366,revenue:49205,asp:53},
+  {date:'2026-04-11',label:'4/11',month:4,day:11,dow:6,views:7225,visitors:2522,buyers:945,cvr:37.47,orders:1046,items:1384,revenue:46411,asp:49},
+  {date:'2026-04-12',label:'4/12',month:4,day:12,dow:0,views:6769,visitors:2317,buyers:865,cvr:37.33,orders:971,items:1232,revenue:44866,asp:52},
+  {date:'2026-04-13',label:'4/13',month:4,day:13,dow:1,views:7431,visitors:2558,buyers:842,cvr:32.92,orders:922,items:1225,revenue:45806,asp:54},
+  {date:'2026-04-14',label:'4/14',month:4,day:14,dow:2,views:6943,visitors:2228,buyers:796,cvr:35.73,orders:876,items:1151,revenue:40835,asp:51},
+  {date:'2026-04-15',label:'4/15',month:4,day:15,dow:3,views:6599,visitors:2020,buyers:783,cvr:38.76,orders:862,items:1152,revenue:39620,asp:51},
+  {date:'2026-04-16',label:'4/16',month:4,day:16,dow:4,views:7963,visitors:2527,buyers:869,cvr:34.39,orders:1189,items:1498,revenue:54279,asp:62},
+  {date:'2026-04-17',label:'4/17',month:4,day:17,dow:5,views:7341,visitors:2162,buyers:855,cvr:39.55,orders:985,items:1269,revenue:48157,asp:56},
+  {date:'2026-04-18',label:'4/18',month:4,day:18,dow:6,views:6708,visitors:2327,buyers:911,cvr:39.15,orders:1032,items:1338,revenue:46370,asp:51},
+  {date:'2026-04-19',label:'4/19',month:4,day:19,dow:0,views:7822,visitors:2745,buyers:888,cvr:32.35,orders:999,items:1273,revenue:42413,asp:48},
+  {date:'2026-04-20',label:'4/20',month:4,day:20,dow:1,views:7046,visitors:2196,buyers:810,cvr:36.89,orders:915,items:1195,revenue:38800,asp:48},
+  {date:'2026-04-21',label:'4/21',month:4,day:21,dow:2,views:6798,visitors:2160,buyers:849,cvr:39.31,orders:940,items:1212,revenue:42672,asp:50},
+  {date:'2026-04-22',label:'4/22',month:4,day:22,dow:3,views:6665,visitors:2162,buyers:797,cvr:36.88,orders:884,items:1207,revenue:42495,asp:53},
+  {date:'2026-04-23',label:'4/23',month:4,day:23,dow:4,views:7179,visitors:2188,buyers:859,cvr:39.26,orders:944,items:1212,revenue:40435,asp:47},
+  {date:'2026-04-24',label:'4/24',month:4,day:24,dow:5,views:8261,visitors:2696,buyers:942,cvr:34.94,orders:1054,items:1327,revenue:50579,asp:54},
+  {date:'2026-04-25',label:'4/25',month:4,day:25,dow:6,views:8335,visitors:2455,buyers:994,cvr:40.49,orders:1100,items:1364,revenue:52962,asp:53},
+  {date:'2026-04-26',label:'4/26',month:4,day:26,dow:0,views:8083,visitors:2425,buyers:887,cvr:36.58,orders:991,items:1258,revenue:48014,asp:54},
+  {date:'2026-04-27',label:'4/27',month:4,day:27,dow:1,views:7490,visitors:2497,buyers:882,cvr:35.32,orders:1015,items:1385,revenue:41600,asp:47},
+  {date:'2026-04-28',label:'4/28',month:4,day:28,dow:2,views:7890,visitors:2609,buyers:880,cvr:33.73,orders:1013,items:1345,revenue:40038,asp:46},
+  {date:'2026-04-29',label:'4/29',month:4,day:29,dow:3,views:7380,visitors:2624,buyers:915,cvr:34.87,orders:1022,items:1318,revenue:37732,asp:41},
+  {date:'2026-04-30',label:'4/30',month:4,day:30,dow:4,views:7334,visitors:2606,buyers:842,cvr:32.31,orders:924,items:1247,revenue:37437,asp:44},
+  // 5月
+  {date:'2026-05-01',label:'5/1',month:5,day:1,dow:5,views:6427,visitors:2392,buyers:833,cvr:34.82,orders:940,items:1228,revenue:37291,asp:45},
+  {date:'2026-05-02',label:'5/2',month:5,day:2,dow:6,views:6200,visitors:2171,buyers:717,cvr:33.03,orders:773,items:1029,revenue:32577,asp:45},
+  {date:'2026-05-03',label:'5/3',month:5,day:3,dow:0,views:6006,visitors:2088,buyers:677,cvr:32.42,orders:772,items:1008,revenue:30100,asp:44},
+  {date:'2026-05-04',label:'5/4',month:5,day:4,dow:1,views:13138,visitors:3741,buyers:1345,cvr:35.95,orders:1462,items:1801,revenue:68019,asp:51},
+  {date:'2026-05-05',label:'5/5',month:5,day:5,dow:2,views:21834,visitors:5908,buyers:1845,cvr:31.23,orders:2033,items:2493,revenue:97678,asp:53},
+  {date:'2026-05-06',label:'5/6',month:5,day:6,dow:3,views:11708,visitors:3571,buyers:1222,cvr:34.22,orders:1360,items:1776,revenue:59815,asp:49},
+  {date:'2026-05-07',label:'5/7',month:5,day:7,dow:4,views:11304,visitors:3470,buyers:1236,cvr:35.62,orders:1385,items:1758,revenue:63358,asp:51},
+  {date:'2026-05-08',label:'5/8',month:5,day:8,dow:5,views:10196,visitors:3276,buyers:1183,cvr:36.11,orders:1308,items:1737,revenue:67973,asp:57},
+  {date:'2026-05-09',label:'5/9',month:5,day:9,dow:6,views:10793,visitors:3403,buyers:1141,cvr:33.53,orders:1280,items:1692,revenue:61406,asp:54},
+  {date:'2026-05-10',label:'5/10',month:5,day:10,dow:0,views:9472,visitors:3236,buyers:1090,cvr:33.68,orders:1240,items:1569,revenue:54817,asp:50},
+  {date:'2026-05-11',label:'5/11',month:5,day:11,dow:1,views:11094,visitors:3634,buyers:1178,cvr:32.42,orders:1321,items:1701,revenue:56905,asp:48},
+  {date:'2026-05-12',label:'5/12',month:5,day:12,dow:2,views:11802,visitors:3941,buyers:1218,cvr:30.91,orders:1374,items:1726,revenue:55864,asp:46},
+  {date:'2026-05-13',label:'5/13',month:5,day:13,dow:3,views:12132,visitors:3892,buyers:1379,cvr:35.43,orders:1579,items:1978,revenue:65950,asp:48},
+  {date:'2026-05-14',label:'5/14',month:5,day:14,dow:4,views:14859,visitors:5678,buyers:1567,cvr:27.60,orders:1741,items:2103,revenue:67802,asp:43},
+  {date:'2026-05-15',label:'5/15',month:5,day:15,dow:5,views:11008,visitors:3932,buyers:1143,cvr:29.07,orders:1288,items:1624,revenue:50578,asp:44},
+  {date:'2026-05-16',label:'5/16',month:5,day:16,dow:6,views:9955,visitors:3496,buyers:1033,cvr:29.55,orders:1174,items:1536,revenue:47798,asp:46},
+  {date:'2026-05-17',label:'5/17',month:5,day:17,dow:0,views:10338,visitors:3730,buyers:1121,cvr:30.05,orders:1262,items:1569,revenue:48069,asp:43},
+  {date:'2026-05-18',label:'5/18',month:5,day:18,dow:1,views:10739,visitors:4160,buyers:1068,cvr:25.67,orders:1186,items:1515,revenue:45703,asp:43},
+  {date:'2026-05-19',label:'5/19',month:5,day:19,dow:2,views:9565,visitors:3443,buyers:1038,cvr:30.15,orders:1145,items:1533,revenue:50273,asp:48},
+  {date:'2026-05-20',label:'5/20',month:5,day:20,dow:3,views:11154,visitors:4427,buyers:1093,cvr:24.69,orders:1219,items:1583,revenue:47671,asp:44},
+  {date:'2026-05-21',label:'5/21',month:5,day:21,dow:4,views:10205,visitors:3546,buyers:1043,cvr:29.41,orders:1139,items:1505,revenue:50049,asp:48},
+  {date:'2026-05-22',label:'5/22',month:5,day:22,dow:5,views:8560,visitors:3115,buyers:951,cvr:30.53,orders:1017,items:1432,revenue:50188,asp:53},
+  {date:'2026-05-23',label:'5/23',month:5,day:23,dow:6,views:8340,visitors:2945,buyers:903,cvr:30.66,orders:985,items:1303,revenue:43383,asp:48},
+  {date:'2026-05-24',label:'5/24',month:5,day:24,dow:0,views:8019,visitors:3020,buyers:846,cvr:28.01,orders:910,items:1231,revenue:38495,asp:46},
+  {date:'2026-05-25',label:'5/25',month:5,day:25,dow:1,views:6812,visitors:2429,buyers:875,cvr:36.02,orders:948,items:1188,revenue:37585,asp:43},
+  {date:'2026-05-26',label:'5/26',month:5,day:26,dow:2,views:10263,visitors:4256,buyers:1043,cvr:24.51,orders:1110,items:1418,revenue:39700,asp:38},
+  {date:'2026-05-27',label:'5/27',month:5,day:27,dow:3,views:7500,visitors:2756,buyers:915,cvr:33.20,orders:972,items:1242,revenue:40361,asp:44},
+  {date:'2026-05-28',label:'5/28',month:5,day:28,dow:4,views:8899,visitors:3395,buyers:1049,cvr:30.90,orders:1139,items:1455,revenue:43067,asp:41},
+  {date:'2026-05-29',label:'5/29',month:5,day:29,dow:5,views:6908,visitors:2576,buyers:963,cvr:37.38,orders:1071,items:1498,revenue:48373,asp:50},
+  {date:'2026-05-30',label:'5/30',month:5,day:30,dow:6,views:11753,visitors:4550,buyers:1213,cvr:26.66,orders:1436,items:1935,revenue:60190,asp:50},
+  {date:'2026-05-31',label:'5/31',month:5,day:31,dow:0,views:9321,visitors:3358,buyers:1151,cvr:34.28,orders:1348,items:1886,revenue:57371,asp:50},
+  // 6月
+  {date:'2026-06-01',label:'6/1',month:6,day:1,dow:1,views:8787,visitors:3151,buyers:1109,cvr:35.20,orders:1293,items:1735,revenue:54202,asp:49},
+  {date:'2026-06-02',label:'6/2',month:6,day:2,dow:2,views:8426,visitors:3004,buyers:1087,cvr:36.19,orders:1260,items:1737,revenue:50737,asp:47},
+  {date:'2026-06-03',label:'6/3',month:6,day:3,dow:3,views:9873,visitors:3879,buyers:1142,cvr:29.44,orders:1315,items:1765,revenue:50427,asp:44},
+  {date:'2026-06-04',label:'6/4',month:6,day:4,dow:4,views:8025,visitors:2887,buyers:1030,cvr:35.68,orders:1161,items:1551,revenue:46202,asp:45},
+  {date:'2026-06-05',label:'6/5',month:6,day:5,dow:5,views:8980,visitors:3149,buyers:1133,cvr:35.98,orders:1308,items:1782,revenue:53808,asp:47},
+  {date:'2026-06-06',label:'6/6',month:6,day:6,dow:6,views:9318,visitors:3211,buyers:1041,cvr:32.42,orders:1190,items:1644,revenue:49563,asp:48},
+  {date:'2026-06-07',label:'6/7',month:6,day:7,dow:0,views:8110,visitors:3139,buyers:1003,cvr:31.95,orders:1144,items:1524,revenue:47077,asp:47},
+  {date:'2026-06-08',label:'6/8',month:6,day:8,dow:1,views:11232,visitors:4800,buyers:1146,cvr:23.88,orders:1271,items:1649,revenue:45345,asp:40},
+  {date:'2026-06-09',label:'6/9',month:6,day:9,dow:2,views:8677,visitors:3320,buyers:755,cvr:22.74,orders:868,items:1194,revenue:39329,asp:52},
+  {date:'2026-06-10',label:'6/10',month:6,day:10,dow:3,views:9238,visitors:3596,buyers:708,cvr:19.69,orders:843,items:1192,revenue:39980,asp:56},
+  {date:'2026-06-11',label:'6/11',month:6,day:11,dow:4,views:8148,visitors:3075,buyers:560,cvr:18.21,orders:686,items:1041,revenue:36613,asp:65},
+  {date:'2026-06-12',label:'6/12',month:6,day:12,dow:5,views:8256,visitors:2967,buyers:989,cvr:33.33,orders:1153,items:1586,revenue:47771,asp:48},
+  {date:'2026-06-13',label:'6/13',month:6,day:13,dow:6,views:7669,visitors:2745,buyers:1038,cvr:37.81,orders:1165,items:1590,revenue:48825,asp:47},
+  {date:'2026-06-14',label:'6/14',month:6,day:14,dow:0,views:7270,visitors:2632,buyers:843,cvr:32.03,orders:968,items:1352,revenue:39917,asp:47},
+  {date:'2026-06-15',label:'6/15',month:6,day:15,dow:1,views:9431,visitors:3937,buyers:1087,cvr:27.61,orders:1218,items:1828,revenue:52592,asp:48},
+  {date:'2026-06-16',label:'6/16',month:6,day:16,dow:2,views:9005,visitors:3686,buyers:813,cvr:22.06,orders:998,items:1332,revenue:41473,asp:51},
+  {date:'2026-06-17',label:'6/17',month:6,day:17,dow:3,views:9723,visitors:4188,buyers:847,cvr:20.22,orders:1013,items:1418,revenue:45528,asp:54},
+  {date:'2026-06-18',label:'6/18',month:6,day:18,dow:4,views:11049,visitors:3966,buyers:1015,cvr:25.59,orders:1227,items:1681,revenue:55362,asp:55},
+  {date:'2026-06-19',label:'6/19',month:6,day:19,dow:5,views:6115,visitors:2336,buyers:729,cvr:31.21,orders:853,items:1147,revenue:38708,asp:53},
+  {date:'2026-06-20',label:'6/20',month:6,day:20,dow:6,views:6264,visitors:2303,buyers:678,cvr:29.44,orders:793,items:1013,revenue:35626,asp:53},
+  {date:'2026-06-21',label:'6/21',month:6,day:21,dow:0,views:5757,visitors:2127,buyers:623,cvr:29.29,orders:729,items:950,revenue:29564,asp:47},
+  {date:'2026-06-22',label:'6/22',month:6,day:22,dow:1,views:5931,visitors:2015,buyers:646,cvr:32.06,orders:743,items:1008,revenue:32614,asp:50},
+  {date:'2026-06-23',label:'6/23',month:6,day:23,dow:2,views:6457,visitors:2311,buyers:696,cvr:30.12,orders:798,items:1077,revenue:32862,asp:47},
+  {date:'2026-06-24',label:'6/24',month:6,day:24,dow:3,views:6402,visitors:2022,buyers:679,cvr:33.58,orders:788,items:1223,revenue:38388,asp:57},
+  {date:'2026-06-25',label:'6/25',month:6,day:25,dow:4,views:9027,visitors:3839,buyers:1016,cvr:26.47,orders:1164,items:1475,revenue:40354,asp:40},
+  {date:'2026-06-26',label:'6/26',month:6,day:26,dow:5,views:6137,visitors:2187,buyers:684,cvr:31.28,orders:832,items:1177,revenue:37019,asp:54},
+  {date:'2026-06-27',label:'6/27',month:6,day:27,dow:6,views:6376,visitors:2261,buyers:752,cvr:33.26,orders:926,items:1271,revenue:38158,asp:51},
+  {date:'2026-06-28',label:'6/28',month:6,day:28,dow:0,views:6122,visitors:2283,buyers:662,cvr:29.00,orders:776,items:1056,revenue:32650,asp:49},
+  {date:'2026-06-29',label:'6/29',month:6,day:29,dow:1,views:6161,visitors:2146,buyers:654,cvr:30.48,orders:767,items:1035,revenue:33300,asp:51},
+  {date:'2026-06-30',label:'6/30',month:6,day:30,dow:2,views:6472,visitors:2150,buyers:713,cvr:33.16,orders:835,items:1186,revenue:38896,asp:55},
+  // 7月
+  {date:'2026-07-01',label:'7/1',month:7,day:1,dow:3,views:7414,visitors:2950,buyers:927,cvr:31.42,orders:1063,items:1348,revenue:39712,asp:43},
+  {date:'2026-07-02',label:'7/2',month:7,day:2,dow:4,views:9033,visitors:3526,buyers:1067,cvr:30.26,orders:1185,items:1526,revenue:44449,asp:42},
+  {date:'2026-07-03',label:'7/3',month:7,day:3,dow:5,views:7719,visitors:2433,buyers:828,cvr:34.03,orders:1007,items:1541,revenue:51693,asp:62},
+  {date:'2026-07-04',label:'7/4',month:7,day:4,dow:6,views:7058,visitors:2352,buyers:817,cvr:34.74,orders:959,items:1252,revenue:41674,asp:51},
+  {date:'2026-07-05',label:'7/5',month:7,day:5,dow:0,views:6846,visitors:2321,buyers:770,cvr:33.18,orders:881,items:1184,revenue:36611,asp:48},
+  {date:'2026-07-06',label:'7/6',month:7,day:6,dow:1,views:8880,visitors:3488,buyers:934,cvr:26.78,orders:1084,items:1436,revenue:44197,asp:47},
+  {date:'2026-07-07',label:'7/7',month:7,day:7,dow:2,views:7178,visitors:2297,buyers:861,cvr:37.48,orders:986,items:1351,revenue:44385,asp:52},
+  {date:'2026-07-08',label:'7/8',month:7,day:8,dow:3,views:8324,visitors:3167,buyers:1158,cvr:36.56,orders:1344,items:1684,revenue:50334,asp:43},
+  {date:'2026-07-09',label:'7/9',month:7,day:9,dow:4,views:7360,visitors:2416,buyers:983,cvr:40.69,orders:1122,items:1532,revenue:46951,asp:48},
+  {date:'2026-07-10',label:'7/10',month:7,day:10,dow:5,views:8025,visitors:2656,buyers:990,cvr:37.27,orders:1160,items:1559,revenue:51543,asp:52},
+  {date:'2026-07-11',label:'7/11',month:7,day:11,dow:6,views:7864,visitors:2717,buyers:977,cvr:35.96,orders:1120,items:1484,revenue:48641,asp:50},
+  {date:'2026-07-12',label:'7/12',month:7,day:12,dow:0,views:7670,visitors:2470,buyers:821,cvr:33.24,orders:922,items:1180,revenue:40701,asp:50},
+  {date:'2026-07-13',label:'7/13',month:7,day:13,dow:1,views:9760,visitors:3694,buyers:1117,cvr:30.24,orders:1264,items:1613,revenue:52791,asp:47},
+  {date:'2026-07-14',label:'7/14',month:7,day:14,dow:2,views:8979,visitors:2983,buyers:985,cvr:33.02,orders:1119,items:1497,revenue:50022,asp:51}
+];
+
+// ============ 全局状态 ============
+let filteredData = [...ALL_DATA];
+let charts = {};
+
+// ============ 初始化日期选择器 ============
+function initSelectors() {
+  const startSel = document.getElementById('startDate');
+  const endSel = document.getElementById('endDate');
+  startSel.innerHTML = endSel.innerHTML = '';
+  ALL_DATA.forEach((d,i) => {
+    const opt = `<option value="${i}">${d.date}</option>`;
+    startSel.innerHTML += opt;
+    endSel.innerHTML += opt;
+  });
+  endSel.value = ALL_DATA.length - 1;
+  startSel.value = 0;
+}
+
+// ============ 快速选择 ============
+function quickRange(type, month) {
+  document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('active'));
+  if (type === 'month') {
+    filteredData = ALL_DATA.filter(d => d.month === month);
+    document.querySelectorAll('.quick-btn').forEach(b => { if(b.textContent === month+'月') b.classList.add('active'); });
+  } else {
+    filteredData = [...ALL_DATA];
+    document.querySelectorAll('.quick-btn').forEach(b => { if(b.textContent === '全部') b.classList.add('active'); });
+  }
+  // 同步下拉框
+  if (filteredData.length > 0) {
+    const si = ALL_DATA.indexOf(filteredData[0]);
+    const ei = ALL_DATA.indexOf(filteredData[filteredData.length-1]);
+    document.getElementById('startDate').value = si;
+    document.getElementById('endDate').value = ei;
+  }
+  renderAll();
+}
+
+// ============ 下拉框变化 ============
+function onDateChange() {
+  document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('active'));
+  const si = parseInt(document.getElementById('startDate').value);
+  const ei = parseInt(document.getElementById('endDate').value);
+  if (isNaN(si) || isNaN(ei)) return;
+  const s = Math.min(si, ei), e = Math.max(si, ei);
+  filteredData = ALL_DATA.slice(s, e + 1);
+  renderAll();
+}
+
+// ============ 渲染全部 ============
+function renderAll() {
+  if (filteredData.length === 0) return;
+  updateKPIs();
+  updateBadge();
+  updateCharts();
+  updateTable();
+  updateAnalysis();
+}
+
+function updateBadge() {
+  const d = filteredData;
+  document.getElementById('rangeBadge').textContent = `${d[0].label} — ${d[d.length-1].label} · ${d.length}天`;
+}
+
+// ============ KPI ============
+function updateKPIs() {
+  const d = filteredData;
+  const n = d.length;
+  const sum = (k) => d.reduce((s,x) => s + x[k], 0);
+  const totalRevenue = sum('revenue');
+  const totalOrders = sum('orders');
+  const totalVisitors = sum('visitors');
+  const totalBuyers = sum('buyers');
+  const totalViews = sum('views');
+  const avgCVR = totalVisitors > 0 ? (totalBuyers / totalVisitors * 100) : 0;
+  const avgASP = totalOrders > 0 ? (totalRevenue / totalOrders) : 0;
+
+  document.getElementById('kpiRevenue').textContent = '¥' + totalRevenue.toLocaleString();
+  document.getElementById('kpiDailyRevenue').textContent = '日均 ¥' + Math.round(totalRevenue/n).toLocaleString();
+  document.getElementById('kpiOrders').textContent = totalOrders.toLocaleString();
+  document.getElementById('kpiDailyOrders').textContent = '日均 ' + Math.round(totalOrders/n).toLocaleString() + ' 单';
+  document.getElementById('kpiVisitors').textContent = totalVisitors.toLocaleString();
+  document.getElementById('kpiDailyVisitors').textContent = '日均 ' + Math.round(totalVisitors/n).toLocaleString() + ' 人';
+  document.getElementById('kpiCVR').textContent = avgCVR.toFixed(2) + '%';
+  document.getElementById('kpiBuyers').textContent = '日均成交 ' + Math.round(totalBuyers/n).toLocaleString() + ' 人';
+  document.getElementById('kpiASP').textContent = '¥' + avgASP.toFixed(2);
+  document.getElementById('kpiASPCompare').textContent = '共 ' + n + ' 天';
+  document.getElementById('kpiViews').textContent = totalViews.toLocaleString();
+  document.getElementById('kpiDailyViews').textContent = '日均 ' + Math.round(totalViews/n).toLocaleString() + ' 次';
+}
+
+// ============ 图表 ============
+function updateCharts() {
+  const d = filteredData;
+  const labels = d.map(x => x.label);
+
+  // 销毁旧图表
+  ['revenueChart','cvrChart','weeklyChart','monthlyChart'].forEach(id => {
+    if (charts[id]) { charts[id].destroy(); charts[id] = null; }
+  });
+
+  // 成交金额柱状图
+  const barColors = d.map(x => [0,6].includes(x.dow) ? '#f59e0b' : '#1a73e8');
+  charts.revenueChart = new Chart(document.getElementById('revenueChart'), {
+    type: 'bar',
+    data: { labels, datasets: [{ label:'成交金额 (¥)', data: d.map(x=>x.revenue), backgroundColor:barColors, borderRadius:6 }] },
+    options: {
+      responsive:true, plugins:{legend:{display:false}, tooltip:{callbacks:{label:ctx=>'¥'+ctx.raw.toLocaleString()}}},
+      scales:{ y:{beginAtZero:false, ticks:{callback:v=>'¥'+(v/1000).toFixed(0)+'k'}}, x:{grid:{display:false}} }
+    }
+  });
+
+  // 转化率+客单价
+  charts.cvrChart = new Chart(document.getElementById('cvrChart'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label:'转化率 %', data:d.map(x=>x.cvr), borderColor:'#1a73e8', backgroundColor:'rgba(26,115,232,0.1)', fill:true, tension:0.3, yAxisID:'y' },
+        { label:'客单价 ¥', data:d.map(x=>x.asp), borderColor:'#0d9488', backgroundColor:'rgba(13,148,136,0.1)', fill:true, tension:0.3, yAxisID:'y1' }
+      ]
+    },
+    options: {
+      responsive:true, interaction:{mode:'index',intersect:false}, plugins:{legend:{position:'bottom'}},
+      scales:{
+        y:{type:'linear',position:'left',title:{display:true,text:'转化率 %'}},
+        y1:{type:'linear',position:'right',title:{display:true,text:'客单价 ¥'},grid:{drawOnChartArea:false}}
+      }
+    }
+  });
+
+  // 周度汇总
+  const weeks = {};
+  d.forEach(x => {
+    const dObj = new Date(x.date);
+    const day = dObj.getDay();
+    const monday = new Date(dObj);
+    monday.setDate(dObj.getDate() - (day === 0 ? 6 : day - 1));
+    const wk = monday.toISOString().slice(0,10);
+    if (!weeks[wk]) weeks[wk] = {revenue:0, orders:0, count:0};
+    weeks[wk].revenue += x.revenue;
+    weeks[wk].orders += x.orders;
+    weeks[wk].count++;
+  });
+  const wkKeys = Object.keys(weeks).sort();
+  const wkLabels = wkKeys.map(k => k.slice(5));
+  charts.weeklyChart = new Chart(document.getElementById('weeklyChart'), {
+    type: 'bar',
+    data: { labels:wkLabels, datasets:[
+      {label:'周成交金额 (¥)',data:wkKeys.map(k=>weeks[k].revenue),backgroundColor:'#1a73e8',borderRadius:6},
+      {label:'周成交单量',data:wkKeys.map(k=>weeks[k].orders),backgroundColor:'#0d9488',borderRadius:6,yAxisID:'y1'}
+    ]},
+    options: {
+      responsive:true, plugins:{legend:{position:'bottom'}},
+      scales:{
+        y:{position:'left',title:{display:true,text:'金额 ¥'},ticks:{callback:v=>'¥'+(v/1000).toFixed(0)+'k'}},
+        y1:{position:'right',title:{display:true,text:'单量'},grid:{drawOnChartArea:false}}
+      }
+    }
+  });
+
+  // 月度趋势
+  const months = {};
+  d.forEach(x => {
+    const m = x.month + '月';
+    if (!months[m]) months[m] = {revenue:0, orders:0, days:0};
+    months[m].revenue += x.revenue;
+    months[m].orders += x.orders;
+    months[m].days++;
+  });
+  const moKeys = Object.keys(months);
+  charts.monthlyChart = new Chart(document.getElementById('monthlyChart'), {
+    type: 'bar',
+    data: { labels:moKeys, datasets:[
+      {label:'月成交金额 (¥)',data:moKeys.map(k=>months[k].revenue),backgroundColor:'#1a73e8',borderRadius:6,order:1},
+      {label:'日均 (¥)',data:moKeys.map(k=>Math.round(months[k].revenue/months[k].days)),backgroundColor:'#f59e0b',borderRadius:6,order:2}
+    ]},
+    options: {
+      responsive:true, plugins:{legend:{position:'bottom'}},
+      scales:{ y:{ticks:{callback:v=>'¥'+(v/1000).toFixed(0)+'k'}} }
+    }
+  });
+}
+
+// ============ 明细表 ============
+function updateTable() {
+  const d = filteredData;
+  const summaryRow = document.getElementById('summaryRow');
+  const totalRevenue = d.reduce((s,x)=>s+x.revenue,0);
+  const totalOrders = d.reduce((s,x)=>s+x.orders,0);
+  const avgCVR = d.reduce((s,x)=>s+x.buyers,0) / d.reduce((s,x)=>s+x.visitors,0) * 100;
+  summaryRow.innerHTML = `
+    <span class="summary-tag">📅 ${d.length}天</span>
+    <span class="summary-tag">💰 ¥${totalRevenue.toLocaleString()}</span>
+    <span class="summary-tag">📦 ${totalOrders.toLocaleString()}单</span>
+    <span class="summary-tag">📈 ${avgCVR.toFixed(1)}%</span>
+    <span class="summary-tag">💵 ¥${(totalOrders>0?totalRevenue/totalOrders:0).toFixed(0)} 客单价</span>
+  `;
+
+  let html = '';
+  d.forEach((x,i) => {
+    let prevRev = i > 0 ? d[i-1].revenue : null;
+    let changeHTML = '';
+    if (prevRev) {
+      let pct = ((x.revenue - prevRev) / prevRev * 100).toFixed(1);
+      let cls = pct >= 0 ? 'tag-up' : 'tag-down';
+      changeHTML = `<span class="${cls}">${pct>=0?'+':''}${pct}%</span>`;
+    }
+    const isWeekend = [0,6].includes(x.dow);
+    html += `<tr class="${isWeekend?'weekend-row':''}">
+      <td><strong>${x.label}</strong> ${isWeekend?'🔴':''}</td>
+      <td>${x.views.toLocaleString()}</td>
+      <td>${x.visitors.toLocaleString()}</td>
+      <td>${x.buyers.toLocaleString()}</td>
+      <td>${x.cvr}%</td>
+      <td>${x.orders.toLocaleString()}</td>
+      <td>${x.items.toLocaleString()}</td>
+      <td><strong>¥${x.revenue.toLocaleString()}</strong></td>
+      <td>¥${x.asp}</td>
+      <td>${changeHTML}</td>
+    </tr>`;
+  });
+  document.getElementById('dailyTable').innerHTML = html;
+}
+
+// ============ 分析报告 ============
+function updateAnalysis() {
+  const d = filteredData;
+  const n = d.length;
+  const sum = (k) => d.reduce((s,x)=>s+x[k],0);
+  const totalRevenue = sum('revenue');
+  const totalOrders = sum('orders');
+  const totalVisitors = sum('visitors');
+  const totalBuyers = sum('buyers');
+  const avgCVR = totalVisitors > 0 ? (totalBuyers/totalVisitors*100) : 0;
+  const avgASP = totalOrders > 0 ? (totalRevenue/totalOrders) : 0;
+  const dailyAvg = totalRevenue / n;
+
+  // 找最高最低
+  let maxDay = d[0], minDay = d[0];
+  d.forEach(x => { if(x.revenue > maxDay.revenue) maxDay = x; if(x.revenue < minDay.revenue) minDay = x; });
+
+  // 周度分析
+  const weekdays = [0,0,0,0,0,0,0]; // 0=Sun
+  const wcounts = [0,0,0,0,0,0,0];
+  d.forEach(x => { weekdays[x.dow] += x.revenue; wcounts[x.dow]++; });
+  const dowNames = ['周日','周一','周二','周三','周四','周五','周六'];
+  let bestDow = 0; for(let i=1;i<7;i++) if(weekdays[i]/wcounts[i] > weekdays[bestDow]/wcounts[bestDow]) bestDow = i;
+  let worstDow = 0; for(let i=1;i<7;i++) if(wcounts[i]>0 && weekdays[i]/wcounts[i] < weekdays[worstDow]/wcounts[worstDow]) worstDow = i;
+
+  // 月度对比
+  const monthMap = {};
+  d.forEach(x => { const m = x.month+'月'; if(!monthMap[m]) monthMap[m] = {rev:0,n:0}; monthMap[m].rev += x.revenue; monthMap[m].n++; });
+  const moKeys = Object.keys(monthMap);
+  let moCompareHTML = '';
+  if (moKeys.length >= 2) {
+    moCompareHTML = '<ul>';
+    for(let i=1; i<moKeys.length; i++) {
+      const prevDaily = monthMap[moKeys[i-1]].rev / monthMap[moKeys[i-1]].n;
+      const currDaily = monthMap[moKeys[i]].rev / monthMap[moKeys[i]].n;
+      const chg = ((currDaily - prevDaily) / prevDaily * 100).toFixed(1);
+      const cls = chg >= 0 ? 'tag-up' : 'tag-down';
+      moCompareHTML += `<li>${moKeys[i-1]}日均 ¥${Math.round(prevDaily).toLocaleString()} → ${moKeys[i]}日均 ¥${Math.round(currDaily).toLocaleString()} <span class="${cls}">${chg>=0?'+':''}${chg}%</span></li>`;
+    }
+    moCompareHTML += '</ul>';
+  }
+
+  document.getElementById('analysisContent').innerHTML = `
+    <h4>一、整体表现概览</h4>
+    <p>选取区间 <strong>${d[0].label} 至 ${d[d.length-1].label}</strong>，共 <strong>${n} 天</strong>。</p>
+    <ul>
+      <li>累计成交金额：<strong>¥${totalRevenue.toLocaleString()}</strong>，日均 ¥${Math.round(dailyAvg).toLocaleString()}</li>
+      <li>累计成交单量：<strong>${totalOrders.toLocaleString()} 单</strong>，日均 ${Math.round(totalOrders/n).toLocaleString()} 单</li>
+      <li>累计访客数：<strong>${totalVisitors.toLocaleString()} 人</strong>，日均 ${Math.round(totalVisitors/n).toLocaleString()} 人</li>
+      <li>平均转化率：<strong>${avgCVR.toFixed(2)}%</strong></li>
+      <li>平均客单价：<strong>¥${avgASP.toFixed(2)}</strong></li>
+    </ul>
+
+    <div class="insight-box">
+      <strong>⚡ 峰值日：</strong>${maxDay.label} 成交 ¥${maxDay.revenue.toLocaleString()}（浏览量 ${maxDay.views.toLocaleString()}，转化率 ${maxDay.cvr}%）<br>
+      <strong>📉 低谷日：</strong>${minDay.label} 成交 ¥${minDay.revenue.toLocaleString()}（浏览量 ${minDay.views.toLocaleString()}，转化率 ${minDay.cvr}%）
+    </div>
+
+    <h4>二、周度表现分析</h4>
+    <ul>
+      <li>日均成交最高的星期：<strong>${dowNames[bestDow]}</strong>（日均 ¥${Math.round(weekdays[bestDow]/wcounts[bestDow]).toLocaleString()}）</li>
+      <li>日均成交最低的星期：<strong>${dowNames[worstDow]}</strong>（日均 ¥${Math.round(weekdays[worstDow]/wcounts[worstDow]).toLocaleString()}）</li>
+    </ul>
+
+    <h4>三、月度趋势对比</h4>
+    ${moCompareHTML || '<p>当前区间仅覆盖单月，无法进行月度对比。</p>'}
+
+    <div class="insight-box warn">
+      <strong>💡 洞察：</strong>${n >= 7 ? `近7天日均成交 ¥${Math.round(d.slice(-7).reduce((s,x)=>s+x.revenue,0)/Math.min(7,d.slice(-7).length)).toLocaleString()}，` : ''}${d.length >= 3 ? `近3天趋势：${(d[d.length-1].revenue > d[d.length-2].revenue ? '↑ 上升' : '↓ 下降')}（${d[d.length-2].label}: ¥${d[d.length-2].revenue.toLocaleString()} → ${d[d.length-1].label}: ¥${d[d.length-1].revenue.toLocaleString()}）` : ''}
+    </div>
+  `;
+}
+
+// ============ 启动 ============
+initSelectors();
+quickRange('all');
+</script>
+</body>
+</html>
