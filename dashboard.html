@@ -23,6 +23,7 @@
   .date-range select { border:1px solid var(--border); border-radius:8px; padding:8px 12px; font-size:14px; background:#fff; color:var(--text); cursor:pointer; outline:none; min-width:130px; }
   .date-range select:focus { border-color:var(--primary); }
   .date-range span { color:var(--muted); font-size:14px; }
+  .date-selects { display:flex; align-items:center; gap:8px; }
   .date-range .quick-btn { padding:8px 14px; border:1px solid var(--border); border-radius:8px; background:#fff; cursor:pointer; font-size:13px; white-space:nowrap; transition:all 0.2s; }
   .date-range .quick-btn:hover { background:var(--primary); color:#fff; border-color:var(--primary); }
   .date-range .quick-btn.active { background:var(--primary); color:#fff; border-color:var(--primary); }
@@ -78,8 +79,48 @@
   .sku-gran.active { background:var(--primary); color:#fff; border-color:var(--primary); }
   .sku-checkboxes { display:flex; gap:16px; flex-wrap:wrap; align-items:center; }
   .sku-chk { font-size:13px; display:flex; align-items:center; gap:5px; cursor:pointer; white-space:nowrap; }
+  .sku-chart-wrap { position:relative; height:440px; }
 
-@media (max-width:768px) { .chart-row,.chart-row.even { grid-template-columns:1fr; } .header { flex-direction:column; align-items:flex-start; } }
+@media (max-width:768px) {
+  .container { padding:12px; }
+  .header { flex-direction:column; align-items:flex-start; gap:12px; }
+  .header h1 { font-size:22px; }
+  .header-right { width:100%; flex-direction:column; align-items:stretch; gap:10px; }
+  .date-range { flex-wrap:wrap; gap:8px; padding:10px 12px; }
+  .date-range .quick-btn { flex:1 1 0; min-width:48px; min-height:40px; font-size:14px; }
+  .date-selects { flex:1 1 100%; min-width:0; }
+  .date-selects select { flex:1 1 0; min-width:0; min-height:44px; font-size:16px; }
+  .badge { align-self:flex-start; }
+  .kpi-grid { grid-template-columns:repeat(2,1fr); gap:12px; }
+  .kpi-card { padding:14px; }
+  .kpi-card .value { font-size:20px; }
+  .kpi-card .label { font-size:12px; }
+  .chart-row,.chart-row.even { grid-template-columns:1fr; gap:12px; }
+  .chart-card { padding:14px; }
+  .chart-card h3 { font-size:15px; margin-bottom:12px; }
+  .chart-card canvas { max-height:260px; }
+  .table-card { padding:12px; -webkit-overflow-scrolling:touch; }
+  table { font-size:12px; min-width:640px; }
+  th,td { padding:8px 10px; }
+  .rank-controls { flex-direction:column; align-items:stretch; gap:10px; }
+  .rank-tabs { width:100%; }
+  .rank-tab,.sku-tab,.sku-gran { flex:1 1 0; min-height:44px; font-size:14px; text-align:center; padding:10px 8px; }
+  .rank-controls select { width:100%; min-height:44px; font-size:16px; min-width:0; }
+  .sku-checkboxes { gap:10px; }
+  .sku-chk { font-size:13px; }
+  .sku-chart-wrap { height:320px; }
+  .analysis-section { padding:16px; }
+  .analysis-section h3 { font-size:16px; }
+  .summary-tag { font-size:11px; padding:4px 8px; }
+}
+@media (max-width:480px) {
+  .header h1 { font-size:20px; }
+  .kpi-grid { grid-template-columns:1fr; }
+  .chart-card canvas { max-height:240px; }
+  .rank-tab,.sku-tab,.sku-gran { font-size:13px; padding:10px 6px; }
+  .sku-chart-wrap { height:280px; }
+  table { font-size:11px; min-width:580px; }
+}
 </style>
 </head>
 <body>
@@ -94,10 +135,12 @@
       <button class="quick-btn" onclick="quickRange('month',6)">6月</button>
       <button class="quick-btn" onclick="quickRange('month',7)">7月</button>
       <button class="quick-btn" onclick="quickRange('all')">全部</button>
-      <span>或</span>
-      <select id="startDate" onchange="onDateChange()"></select>
-      <span>至</span>
-      <select id="endDate" onchange="onDateChange()"></select>
+      <div class="date-selects">
+        <span>或</span>
+        <select id="startDate" onchange="onDateChange()"></select>
+        <span>至</span>
+        <select id="endDate" onchange="onDateChange()"></select>
+      </div>
     </div>
     <span class="badge" id="rangeBadge">全部数据</span>
   </div>
@@ -217,7 +260,7 @@
     <div class="sku-checkboxes" id="skuChecks"></div>
   </div>
   <div class="chart-card" style="margin-top:8px;">
-    <div style="position:relative;height:440px;">
+    <div class="sku-chart-wrap">
       <canvas id="skuChart"></canvas>
     </div>
   </div>
