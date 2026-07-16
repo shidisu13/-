@@ -73,6 +73,9 @@
   .sku-tab { padding:8px 16px; border:1px solid var(--border); border-radius:8px; background:#fff; cursor:pointer; font-size:13px; transition:all 0.2s; }
   .sku-tab:hover { background:var(--primary); color:#fff; border-color:var(--primary); }
   .sku-tab.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+  .sku-gran { padding:8px 16px; border:1px solid var(--border); border-radius:8px; background:#fff; cursor:pointer; font-size:13px; transition:all 0.2s; }
+  .sku-gran:hover { background:var(--primary); color:#fff; border-color:var(--primary); }
+  .sku-gran.active { background:var(--primary); color:#fff; border-color:var(--primary); }
   .sku-checkboxes { display:flex; gap:16px; flex-wrap:wrap; align-items:center; }
   .sku-chk { font-size:13px; display:flex; align-items:center; gap:5px; cursor:pointer; white-space:nowrap; }
 
@@ -191,17 +194,23 @@
 
 <!-- 重点 SKU 销售看板 -->
 <div class="table-card" style="margin-top:24px;">
-  <h3>📦 重点 SKU 销售看板 <span class="tag-muted" style="font-size:12px;font-weight:400;">（自家不同规格 · 横向 / 纵向对比）</span></h3>
+  <h3>📦 重点 SKU 销售看板 <span class="tag-muted" style="font-size:12px;font-weight:400;">（自家不同规格 · 日 / 周 / 月 维度）</span></h3>
   <div class="rank-controls">
     <div class="rank-tabs">
-      <button class="sku-tab active" onclick="switchSkuMode('h')">⬌ 横向：同日比规格</button>
-      <button class="sku-tab" onclick="switchSkuMode('v')">⬍ 纵向：同规格比日期</button>
+      <button class="sku-tab active" onclick="switchSkuMode('h')">⬌ 横向：比规格</button>
+      <button class="sku-tab" onclick="switchSkuMode('v')">⬍ 纵向：比日期</button>
     </div>
     <select id="skuMetric" onchange="renderSku()"></select>
   </div>
-  <div class="rank-controls" id="skuDateWrap">
-    <span class="tag-muted">日期</span>
-    <select id="skuDate" onchange="renderSku()"></select>
+  <div class="rank-controls">
+    <span class="tag-muted">维度</span>
+    <div class="rank-tabs">
+      <button class="sku-gran active" onclick="switchSkuGran('d')">日</button>
+      <button class="sku-gran" onclick="switchSkuGran('w')">周</button>
+      <button class="sku-gran" onclick="switchSkuGran('m')">月</button>
+    </div>
+    <span class="tag-muted" id="skuPeriodLabel">日期</span>
+    <select id="skuPeriod" onchange="renderSku()"></select>
   </div>
   <div class="rank-controls" id="skuListWrap" style="display:none;">
     <span class="tag-muted">规格（可多选）</span>
@@ -213,7 +222,7 @@
     </div>
   </div>
   <div class="summary-row" id="skuSummary"></div>
-  <div class="rank-note">数据来源：腾讯文档《耶气满满销售数据 · 重点sku销售数据》。每行一个规格（SKU），列为每日指标。横向对比＝选定日期下各规格表现；纵向对比＝选定规格随日期走势。</div>
+  <div class="rank-note">数据来源：腾讯文档《耶气满满销售数据 · 重点sku销售数据》。每行一个规格（SKU），列为每日指标。维度可选「日 / 周 / 月」：横向＝选定区间各规格表现（金额/件数等按区间汇总、转化率取区间均值）；纵向＝各规格在日/周/月粒度下的走势。</div>
 </div>
 
 <!-- 分析报告 -->
@@ -718,6 +727,7 @@ function renderRankTable() {
 
 // ============ 重点 SKU 销售看板 ============
 let skuMode = 'h';
+let skuGran = 'd';
 const SKU_METRICS = [
   {key:'成交金额', fmt:'¥', axis:'¥'},
   {key:'商品访客数', fmt:'', axis:'人'},
@@ -726,63 +736,116 @@ const SKU_METRICS = [
   {key:'成交商品件数', fmt:'', axis:'件'},
   {key:'成交转化率', fmt:'%', axis:'%'}
 ];
+const SKU_DATES = SKU_SALES.dates.map(l=>{ const p=l.split('月'); const m=+p[0]; const d=+p[1].replace('日',''); return new Date(2026,m-1,d); });
+function fmtMD(dt){ return (dt.getMonth()+1)+'/'+dt.getDate(); }
+function buildBuckets(){
+  const wkMap={}, moMap={};
+  SKU_DATES.forEach((dt,i)=>{
+    const day=dt.getDay();
+    const mon=new Date(dt); mon.setDate(dt.getDate()-(day===0?6:day-1));
+    const wkKey=mon.getFullYear()+'-'+(mon.getMonth()+1)+'-'+mon.getDate();
+    (wkMap[wkKey]=wkMap[wkKey]||[]).push(i);
+    const moKey=(dt.getMonth()+1)+'月';
+    (moMap[moKey]=moMap[moKey]||[]).push(i);
+  });
+  const weeks=Object.keys(wkMap).sort().map(k=>{ const mon=new Date(k); const sun=new Date(mon); sun.setDate(mon.getDate()+6); return {key:k,label:fmtMD(mon)+'~'+fmtMD(sun),days:wkMap[k]}; });
+  const months=Object.keys(moMap).sort((a,b)=>(+a.replace('月',''))-(+b.replace('月',''))).map(k=>({key:k,label:k,days:moMap[k]}));
+  return {weeks,months};
+}
+const SKU_BUCKETS = buildBuckets();
 function fmtSkuVal(v,m){ if(v==null) return '—'; if(m.fmt==='¥') return '¥'+Math.round(v).toLocaleString(); if(m.fmt==='%') return v.toFixed(2)+'%'; return Math.round(v).toLocaleString(); }
 function fmtSkuAxis(v,m){ if(m.fmt==='¥') return '¥'+(v/1000).toFixed(0)+'k'; if(m.fmt==='%') return v+'%'; if(Math.abs(v)>=10000) return (v/1000).toFixed(0)+'k'; return v; }
+function aggMetric(values, idxs, metric){
+  const vals=idxs.map(i=>values[i]).filter(v=>v!=null);
+  if(vals.length===0) return null;
+  if(metric==='成交转化率'){ return +(vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(2); }
+  return vals.reduce((a,b)=>a+b,0);
+}
 function initSku(){
   const ms=document.getElementById('skuMetric');
   ms.innerHTML=SKU_METRICS.map(m=>`<option value="${m.key}">${m.key}</option>`).join('');
-  const ds=document.getElementById('skuDate');
-  ds.innerHTML=SKU_SALES.dates.map(d=>`<option value="${d}">${d}</option>`).join('');
-  ds.value='7月15日';
-  if(!SKU_SALES.dates.includes('7月15日')) ds.value=SKU_SALES.dates[SKU_SALES.dates.length-1];
+  buildSkuPeriod('d','7月15日');
   const wrap=document.getElementById('skuChecks');
   wrap.innerHTML=SKU_SALES.skus.map((s,i)=>`<label class="sku-chk"><input type="checkbox" value="${i}" checked> ${s.spec}</label>`).join('');
   renderSku();
 }
+function buildSkuPeriod(gran, defVal){
+  const sel=document.getElementById('skuPeriod');
+  let opts=[], def=defVal;
+  if(gran==='d'){ opts=SKU_SALES.dates.map(d=>({v:d,t:d})); if(!defVal) def='7月15日'; }
+  else if(gran==='w'){ opts=SKU_BUCKETS.weeks.map(b=>({v:b.key,t:b.label})); if(!defVal){ const i=SKU_SALES.dates.indexOf('7月15日'); const wk=SKU_BUCKETS.weeks.find(b=>b.days.includes(i)); def=wk?wk.key:opts[opts.length-1].v; } }
+  else { opts=SKU_BUCKETS.months.map(b=>({v:b.key,t:b.label})); if(!defVal) def='7月'; }
+  sel.innerHTML=opts.map(o=>`<option value="${o.v}">${o.t}</option>`).join('');
+  sel.value = opts.some(o=>o.v===def) ? def : opts[opts.length-1].v;
+  document.getElementById('skuPeriodLabel').textContent = gran==='d'?'日期':gran==='w'?'周':'月';
+}
 function switchSkuMode(m){
   skuMode=m;
   document.querySelectorAll('.sku-tab').forEach(b=>b.classList.toggle('active', (m==='h'&&b.textContent.indexOf('横向')>=0)||(m==='v'&&b.textContent.indexOf('纵向')>=0)));
-  document.getElementById('skuDateWrap').style.display = m==='h'?'flex':'none';
+  document.getElementById('skuPeriod').style.display = m==='h'?'inline-block':'none';
+  document.getElementById('skuPeriodLabel').style.display = m==='h'?'inline':'none';
   document.getElementById('skuListWrap').style.display = m==='v'?'flex':'none';
   renderSku();
+}
+function switchSkuGran(g){
+  skuGran=g;
+  document.querySelectorAll('.sku-gran').forEach(b=>b.classList.toggle('active', b.textContent===({d:'日',w:'周',m:'月'}[g])));
+  buildSkuPeriod(g, null);
+  renderSku();
+}
+function getPeriodDays(){
+  if(skuGran==='d'){ const di=SKU_SALES.dates.indexOf(document.getElementById('skuPeriod').value); return di>=0?[di]:[]; }
+  const buckets = skuGran==='w'?SKU_BUCKETS.weeks:SKU_BUCKETS.months;
+  const b=buckets.find(x=>x.key===document.getElementById('skuPeriod').value);
+  return b?b.days:[];
 }
 function renderSku(){
   const metric=document.getElementById('skuMetric').value;
   const mdef=SKU_METRICS.find(m=>m.key===metric);
+  const granLabel={d:'日',w:'周',m:'月'}[skuGran];
   if(charts.skuChart){ charts.skuChart.destroy(); charts.skuChart=null; }
   const ctx=document.getElementById('skuChart');
   const palette=['#1a73e8','#0d9488','#f59e0b','#ef4444','#8b5cf6','#ec4899','#14b8a6','#f97316','#3b82f6','#84cc16'];
   if(skuMode==='h'){
-    const date=document.getElementById('skuDate').value;
-    const di=SKU_SALES.dates.indexOf(date);
-    const pts=SKU_SALES.skus.map(s=>({spec:s.spec, v:s.data[metric][di]})).filter(p=>p.v!=null);
+    const pDays=getPeriodDays();
+    const pLabel=document.getElementById('skuPeriod').value + (skuGran==='w'?'（周）':skuGran==='m'?'（月）':'');
+    const pts=SKU_SALES.skus.map(s=>({spec:s.spec, v:aggMetric(s.data[metric],pDays,metric)})).filter(p=>p.v!=null);
     pts.sort((a,b)=>b.v-a.v);
     charts.skuChart=new Chart(ctx,{
       type:'bar',
-      data:{ labels:pts.map(p=>p.spec), datasets:[{label:metric, data:pts.map(p=>p.v), backgroundColor:pts.map((p,i)=>palette[i%palette.length]), borderRadius:6}] },
+      data:{ labels:pts.map(p=>p.spec), datasets:[{label:metric+'（'+granLabel+'）', data:pts.map(p=>p.v), backgroundColor:pts.map((p,i)=>palette[i%palette.length]), borderRadius:6}] },
       options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{callbacks:{label:ctx=>fmtSkuVal(ctx.raw,mdef)}}},
         scales:{ y:{beginAtZero:true, ticks:{callback:v=>fmtSkuAxis(v,mdef)}}, x:{grid:{display:false}, ticks:{maxRotation:40,minRotation:25,autoSkip:false}} } }
     });
     const max=pts[0], min=pts[pts.length-1];
     document.getElementById('skuSummary').innerHTML =
-      `<span class="summary-tag">📅 ${date}</span>`+
-      `<span class="summary-tag">📊 ${metric}</span>`+
+      `<span class="summary-tag">📊 ${metric} · ${granLabel}维度</span>`+
+      `<span class="summary-tag">🗓️ ${pLabel}</span>`+
       `<span class="summary-tag">🧮 ${pts.length} 个规格有数据</span>`+
       (max?`<span class="summary-tag">🥇 最高 ${max.spec} ${fmtSkuVal(max.v,mdef)}</span>`:'')+
       (min&&pts.length>1?`<span class="summary-tag">🔻 最低 ${min.spec} ${fmtSkuVal(min.v,mdef)}</span>`:'');
   } else {
+    const buckets = skuGran==='w'?SKU_BUCKETS.weeks:SKU_BUCKETS.months;
+    const labels = skuGran==='d'?SKU_SALES.dates:buckets.map(b=>b.label);
     const idxs=[...document.querySelectorAll('#skuChecks input:checked')].map(c=>+c.value);
-    const datasets=idxs.map((i,k)=>{ const s=SKU_SALES.skus[i]; return {label:s.spec, data:s.data[metric], borderColor:palette[k%palette.length], backgroundColor:palette[k%palette.length], fill:false, tension:0.25, spanGaps:true, pointRadius:0, pointHoverRadius:4}; });
+    const datasets = idxs.map((i,k)=>{
+      const s=SKU_SALES.skus[i];
+      let data;
+      if(skuGran==='d'){ data=s.data[metric]; }
+      else { data=buckets.map(b=>aggMetric(s.data[metric],b.days,metric)); }
+      return {label:s.spec, data, borderColor:palette[k%palette.length], backgroundColor:palette[k%palette.length], fill:false, tension:0.25, spanGaps:true, pointRadius: skuGran==='d'?0:3, pointHoverRadius:4};
+    });
     charts.skuChart=new Chart(ctx,{
       type:'line',
-      data:{ labels:SKU_SALES.dates, datasets },
+      data:{ labels, datasets },
       options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false}, plugins:{legend:{position:'bottom'}, tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+fmtSkuVal(ctx.raw,mdef)}}},
-        scales:{ y:{beginAtZero: metric!=='成交转化率', ticks:{callback:v=>fmtSkuAxis(v,mdef)}}, x:{ticks:{maxTicksLimit:18, autoSkip:true}} } }
+        scales:{ y:{beginAtZero: metric!=='成交转化率', ticks:{callback:v=>fmtSkuAxis(v,mdef)}}, x:{ticks:{maxTicksLimit: skuGran==='d'?20:18, autoSkip:true}} } }
     });
+    const range = skuGran==='d' ? (SKU_SALES.dates[0]+' ~ '+SKU_SALES.dates[SKU_SALES.dates.length-1]) : (labels[0]+' ~ '+labels[labels.length-1]);
     document.getElementById('skuSummary').innerHTML =
-      `<span class="summary-tag">📊 ${metric}</span>`+
+      `<span class="summary-tag">📊 ${metric} · ${granLabel}维度</span>`+
       `<span class="summary-tag">🧮 对比 ${idxs.length} 个规格</span>`+
-      `<span class="summary-tag">📅 ${SKU_SALES.dates[0]} ~ ${SKU_SALES.dates[SKU_SALES.dates.length-1]}</span>`;
+      `<span class="summary-tag">📅 ${range}</span>`;
   }
 }
 
