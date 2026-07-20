@@ -13,6 +13,18 @@
   --border-strong: rgba(148,163,184,0.28); --hover: rgba(255,255,255,0.04);
   --shadow: 0 10px 30px rgba(0,0,0,0.35); --radius: 16px;
 }
+[data-theme="light"] {
+  --bg:#eef2f7; --surface:#ffffff; --surface-solid:#ffffff; --surface-2:#f1f5f9;
+  --text:#1e293b; --muted:#64748b; --border:rgba(15,23,42,0.10); --border-strong:rgba(15,23,42,0.16);
+  --hover:rgba(15,23,42,0.04); --primary-soft:rgba(56,189,248,0.14); --shadow:0 1px 3px rgba(15,23,42,0.10);
+}
+[data-theme="light"] body::before {
+  background: radial-gradient(1200px 600px at 82% -8%, rgba(56,189,248,0.10), transparent 60%),
+              linear-gradient(180deg,#f8fafc,#e7edf5);
+}
+.theme-toggle { display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border:1px solid var(--border); border-radius:20px; background:var(--surface-solid); color:var(--text); cursor:pointer; font-size:13px; font-weight:600; transition:all .2s; white-space:nowrap; }
+.theme-toggle:hover { border-color:var(--primary); color:var(--primary); }
+.chart-card, .table-card, .analysis-section, .side-card, .date-range, .badge, .theme-toggle, body { transition: background-color .25s ease, border-color .25s ease, color .25s ease, box-shadow .25s ease; }
 * { margin:0; padding:0; box-sizing:border-box; }
 html{ scroll-behavior:smooth; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background:var(--bg); color:var(--text); line-height:1.6; }
@@ -40,7 +52,7 @@ body::before{ content:''; position:fixed; inset:0; z-index:-1;
 .badge { background:linear-gradient(90deg,var(--primary),#60a5fa); color:#0b1120; padding:4px 16px; border-radius:20px; font-size:13px; font-weight:700; white-space:nowrap; }
 
 .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px; }
-.kpi-card { background:var(--surface); border-radius:var(--radius); padding:20px; border:1px solid var(--border); box-shadow:var(--shadow); position:relative; overflow:hidden; display:flex; flex-direction:column; gap:6px; transition:transform .2s, box-shadow .2s; backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); }
+.kpi-card { background:var(--surface); border-radius:var(--radius); padding:20px; border:1px solid var(--border); box-shadow:var(--shadow); position:relative; overflow:hidden; display:flex; flex-direction:column; gap:6px; transition:transform .2s, box-shadow .2s, background-color .25s ease, border-color .25s ease, color .25s ease; backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); }
 .kpi-card:hover { transform:translateY(-2px); box-shadow:0 14px 36px rgba(0,0,0,0.45); }
 .kpi-card::after { content:''; position:absolute; right:-24px; top:-24px; width:96px; height:96px; border-radius:50%; background:var(--ico-glow); filter:blur(26px); opacity:.55; }
 .kpi-ico { width:42px; height:42px; border-radius:12px; display:grid; place-items:center; font-size:22px; background:var(--ico); color:#fff; margin-bottom:6px; }
@@ -193,6 +205,7 @@ tbody tr:nth-child(even) { background:rgba(255,255,255,0.015); }
         <select id="endDate" onchange="onDateChange()"></select>
       </div>
     </div>
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" type="button">🌙 深色</button>
     <span class="badge" id="rangeBadge">全部数据</span>
   </div>
 </div>
@@ -409,6 +422,24 @@ function vGrad(ctx, hex){
   g.addColorStop(0, hex + 'cc');
   g.addColorStop(1, hex + '10');
   return g;
+}
+
+// ============ 主题切换（深色 / 浅色） ============
+function applyTheme(theme, rerender){
+  document.documentElement.setAttribute('data-theme', theme);
+  try { localStorage.setItem('dashboard-theme', theme); } catch(e){}
+  if (window.Chart) {
+    Chart.defaults.color = theme === 'light' ? '#64748b' : '#94a3b8';
+    Chart.defaults.borderColor = theme === 'light' ? 'rgba(15,23,42,0.10)' : 'rgba(148,163,184,0.12)';
+    Chart.defaults.plugins.legend.labels.color = theme === 'light' ? '#334155' : '#cbd5e1';
+  }
+  const btn = document.getElementById('themeToggle');
+  if (btn) btn.textContent = theme === 'light' ? '☀️ 浅色' : '🌙 深色';
+  if (rerender && typeof renderAll === 'function') renderAll();
+}
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+  applyTheme(cur === 'light' ? 'dark' : 'light', true);
 }
 
 // ============ 全量数据 ============
@@ -1108,6 +1139,7 @@ initSelectors();
 initTableRange();
 initRankSelector();
   initSku();
+try { applyTheme(localStorage.getItem('dashboard-theme') || 'dark', false); } catch(e){}
 quickRange('all');
 </script>
 </body>
