@@ -5,85 +5,134 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>耶气满满 · 销售数据看板</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<style>
-  :root {
-    --bg: #f5f7fa; --card: #ffffff; --primary: #1a73e8; --success: #0d9488;
-    --warning: #f59e0b; --danger: #ef4444; --text: #1e293b; --muted: #64748b; --border: #e2e8f0;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background:var(--bg); color:var(--text); line-height:1.6; }
-  .container { max-width:1400px; margin:0 auto; padding:24px; }
+<style>:root {
+  --bg:#0b1120; --surface: rgba(30,41,59,0.72); --surface-solid:#1e293b;
+  --surface-2: rgba(15,23,42,0.6); --primary:#38bdf8; --primary-soft: rgba(56,189,248,0.15);
+  --success:#22c55e; --warning:#f59e0b; --danger:#fb7185; --coral:#f43f5e;
+  --purple:#a78bfa; --text:#e2e8f0; --muted:#94a3b8; --border: rgba(148,163,184,0.16);
+  --border-strong: rgba(148,163,184,0.28); --hover: rgba(255,255,255,0.04);
+  --shadow: 0 10px 30px rgba(0,0,0,0.35); --radius: 16px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html{ scroll-behavior:smooth; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background:var(--bg); color:var(--text); line-height:1.6; }
+body::before{ content:''; position:fixed; inset:0; z-index:-1;
+  background: radial-gradient(1200px 600px at 82% -8%, rgba(56,189,248,0.10), transparent 60%),
+              linear-gradient(180deg,#0b1120,#0f172a); }
+.container { max-width:1600px; margin:0 auto; padding:24px; }
 
-  .header { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:16px; }
-  .header h1 { font-size:28px; font-weight:700; }
-  .header-right { display:flex; align-items:center; gap:12px; }
+.layout { display:grid; grid-template-columns:minmax(0,2fr) minmax(0,1fr); gap:24px; align-items:start; }
+.main-col { display:flex; flex-direction:column; gap:24px; min-width:0; }
+.side-col { display:flex; flex-direction:column; gap:16px; position:sticky; top:24px; }
 
-  /* 日期选择器 */
-  .date-range { display:flex; align-items:center; gap:8px; background:var(--card); padding:8px 16px; border-radius:12px; box-shadow:0 1px 3px rgba(0,0,0,0.06); }
-  .date-range select { border:1px solid var(--border); border-radius:8px; padding:8px 12px; font-size:14px; background:#fff; color:var(--text); cursor:pointer; outline:none; min-width:130px; }
-  .date-range select:focus { border-color:var(--primary); }
-  .date-range span { color:var(--muted); font-size:14px; }
-  .date-selects { display:flex; align-items:center; gap:8px; }
-  .date-range .quick-btn { padding:8px 14px; border:1px solid var(--border); border-radius:8px; background:#fff; cursor:pointer; font-size:13px; white-space:nowrap; transition:all 0.2s; }
-  .date-range .quick-btn:hover { background:var(--primary); color:#fff; border-color:var(--primary); }
-  .date-range .quick-btn.active { background:var(--primary); color:#fff; border-color:var(--primary); }
-  .badge { background:var(--primary); color:#fff; padding:4px 16px; border-radius:20px; font-size:13px; white-space:nowrap; }
+.header { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:16px; }
+.header h1 { font-size:28px; font-weight:700; letter-spacing:.3px; }
+.header-right { display:flex; align-items:center; gap:12px; }
 
-  .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px; margin-bottom:24px; }
-  .kpi-card { background:var(--card); border-radius:12px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,0.06); }
-  .kpi-card .label { font-size:13px; color:var(--muted); margin-bottom:4px; }
-  .kpi-card .value { font-size:28px; font-weight:700; }
-  .kpi-card .change { font-size:12px; margin-top:4px; }
+.date-range { display:flex; align-items:center; gap:8px; background:var(--surface); padding:8px 14px; border-radius:12px; border:1px solid var(--border); box-shadow:var(--shadow); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); }
+.date-range select { border:1px solid var(--border); border-radius:8px; padding:8px 12px; font-size:14px; background:var(--surface-solid); color:var(--text); cursor:pointer; outline:none; min-width:130px; }
+.date-range select:focus { border-color:var(--primary); }
+.date-range span { color:var(--muted); font-size:14px; }
+.date-selects { display:flex; align-items:center; gap:8px; }
+.date-range .quick-btn { padding:8px 14px; border:1px solid var(--border); border-radius:8px; background:var(--surface-solid); color:var(--text); cursor:pointer; font-size:13px; white-space:nowrap; transition:all 0.2s; }
+.date-range .quick-btn:hover { background:var(--primary); color:#0b1120; border-color:var(--primary); font-weight:600; }
+.date-range .quick-btn.active { background:var(--primary); color:#0b1120; border-color:var(--primary); font-weight:600; }
+.badge { background:linear-gradient(90deg,var(--primary),#60a5fa); color:#0b1120; padding:4px 16px; border-radius:20px; font-size:13px; font-weight:700; white-space:nowrap; }
 
-  .chart-row { display:grid; grid-template-columns:2fr 1fr; gap:16px; margin-bottom:24px; }
-  .chart-row.even { grid-template-columns:1fr 1fr; }
-  .chart-card { background:var(--card); border-radius:12px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,0.06); }
-  .chart-card h3 { font-size:16px; margin-bottom:16px; color:var(--text); }
-  .chart-card canvas { max-height:320px; }
+.kpi-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px; }
+.kpi-card { background:var(--surface); border-radius:var(--radius); padding:20px; border:1px solid var(--border); box-shadow:var(--shadow); position:relative; overflow:hidden; display:flex; flex-direction:column; gap:6px; transition:transform .2s, box-shadow .2s; backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); }
+.kpi-card:hover { transform:translateY(-2px); box-shadow:0 14px 36px rgba(0,0,0,0.45); }
+.kpi-card::after { content:''; position:absolute; right:-24px; top:-24px; width:96px; height:96px; border-radius:50%; background:var(--ico-glow); filter:blur(26px); opacity:.55; }
+.kpi-ico { width:42px; height:42px; border-radius:12px; display:grid; place-items:center; font-size:22px; background:var(--ico); color:#fff; margin-bottom:6px; }
+.kpi-card .label { font-size:13px; color:var(--muted); margin-bottom:4px; }
+.kpi-card .value { font-size:30px; font-weight:800; letter-spacing:.4px; }
+.kpi-card .change { font-size:12px; color:var(--muted); margin-top:4px; }
+.kpi-card .change.up { color:var(--success); }
+.kpi-card .change.down { color:var(--danger); }
+.kpi-card:nth-child(1){--ico:#f43f5e;--ico-glow:rgba(244,63,94,.5);}
+.kpi-card:nth-child(2){--ico:#38bdf8;--ico-glow:rgba(56,189,248,.5);}
+.kpi-card:nth-child(3){--ico:#a78bfa;--ico-glow:rgba(167,139,250,.5);}
+.kpi-card:nth-child(4){--ico:#22c55e;--ico-glow:rgba(34,197,94,.5);}
+.kpi-card:nth-child(5){--ico:#f59e0b;--ico-glow:rgba(245,158,11,.5);}
+.kpi-card:nth-child(6){--ico:#60a5fa;--ico-glow:rgba(96,165,250,.5);}
 
-  .table-card { background:var(--card); border-radius:12px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,0.06); margin-bottom:24px; }
-  .table-scroll { width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
-  .table-card h3 { font-size:16px; margin-bottom:16px; }
-  table { width:100%; border-collapse:collapse; font-size:13px; }
-  th { background:#f8fafc; padding:10px 12px; text-align:right; font-weight:600; color:var(--muted); border-bottom:2px solid var(--border); white-space:nowrap; }
-  th:first-child, td:first-child { text-align:left; }
-  td { padding:8px 12px; border-bottom:1px solid var(--border); text-align:right; }
-  .tag-up { color:var(--success); font-weight:600; }
-  .tag-down { color:var(--danger); font-weight:600; }
-  .weekend-row { background:#f8fafc; }
+.chart-row { display:grid; grid-template-columns:2fr 1fr; gap:16px; }
+.chart-row.even { grid-template-columns:1fr 1fr; }
+.chart-card { background:var(--surface); border-radius:var(--radius); padding:20px; border:1px solid var(--border); box-shadow:var(--shadow); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); }
+.card-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+.card-head h3 { font-size:16px; margin:0; }
+.card-head .more { color:var(--muted); font-size:13px; text-decoration:none; }
+.card-head .more:hover { color:var(--primary); }
+.chart-card h3 { font-size:16px; margin-bottom:16px; color:var(--text); }
+.chart-card canvas { max-height:320px; }
 
-  .analysis-section { background:var(--card); border-radius:12px; padding:24px; box-shadow:0 1px 3px rgba(0,0,0,0.06); margin-bottom:24px; }
-  .analysis-section h3 { font-size:18px; margin-bottom:16px; border-left:4px solid var(--primary); padding-left:12px; }
-  .analysis-section p { margin-bottom:12px; color:#475569; }
-  .analysis-section ul { margin-left:20px; margin-bottom:12px; }
-  .analysis-section li { margin-bottom:6px; color:#475569; }
-  .insight-box { background:#f0f9ff; border-left:4px solid var(--primary); padding:12px 16px; border-radius:0 8px 8px 0; margin:12px 0; }
-  .insight-box.warn { background:#fffbeb; border-left-color:var(--warning); }
+.table-card { background:var(--surface); border-radius:var(--radius); padding:20px; border:1px solid var(--border); box-shadow:var(--shadow); margin-bottom:0; backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); }
+.table-card h3 { font-size:16px; margin-bottom:16px; }
+.table-scroll { width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th { background:var(--surface-2); padding:10px 12px; text-align:right; font-weight:600; color:var(--muted); border-bottom:1px solid var(--border-strong); white-space:nowrap; }
+th:first-child, td:first-child { text-align:left; }
+td { padding:8px 12px; border-bottom:1px solid var(--border); text-align:right; color:var(--text); }
+tbody tr:hover { background:var(--hover); }
+tbody tr:nth-child(even) { background:rgba(255,255,255,0.015); }
+.weekend-row { background:rgba(245,158,11,0.08); }
+.tag-up { color:var(--success); font-weight:600; }
+.tag-down { color:var(--danger); font-weight:600; }
+.tag-muted { color:var(--muted); font-weight:600; }
+.medal { font-size:14px; }
 
-  .summary-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
-  .summary-tag { background:#e8f0fe; color:var(--primary); padding:2px 10px; border-radius:12px; font-size:12px; font-weight:600; }
+.analysis-section { background:var(--surface); border-radius:var(--radius); padding:24px; border:1px solid var(--border); box-shadow:var(--shadow); margin-bottom:0; backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); }
+.analysis-section h3 { font-size:18px; margin-bottom:16px; border-left:4px solid var(--primary); padding-left:12px; }
+.analysis-section h4 { color:var(--text); margin:16px 0 8px; }
+.analysis-section p { margin-bottom:12px; color:var(--muted); }
+.analysis-section ul { margin-left:20px; margin-bottom:12px; }
+.analysis-section li { margin-bottom:6px; color:var(--muted); }
+.insight-box { background:var(--primary-soft); border-left:4px solid var(--primary); padding:12px 16px; border-radius:0 8px 8px 0; margin:12px 0; }
+.insight-box.warn { background:rgba(245,158,11,0.12); border-left-color:var(--warning); }
 
-    .rank-controls { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
-  .rank-tabs { display:flex; gap:8px; flex-wrap:wrap; }
-  .rank-tab { padding:8px 16px; border:1px solid var(--border); border-radius:8px; background:#fff; cursor:pointer; font-size:13px; transition:all 0.2s; }
-  .rank-tab:hover { background:var(--primary); color:#fff; border-color:var(--primary); }
-  .rank-tab.active { background:var(--primary); color:#fff; border-color:var(--primary); }
-  .rank-controls select { border:1px solid var(--border); border-radius:8px; padding:8px 12px; font-size:14px; background:#fff; color:var(--text); cursor:pointer; outline:none; min-width:190px; }
-  .rank-controls select:focus { border-color:var(--primary); }
-  .tag-muted { color:var(--muted); font-weight:600; }
-  .rank-note { font-size:12px; color:var(--muted); margin-top:8px; }
-  .sku-tab { padding:8px 16px; border:1px solid var(--border); border-radius:8px; background:#fff; cursor:pointer; font-size:13px; transition:all 0.2s; }
-  .sku-tab:hover { background:var(--primary); color:#fff; border-color:var(--primary); }
-  .sku-tab.active { background:var(--primary); color:#fff; border-color:var(--primary); }
-  .sku-gran { padding:8px 16px; border:1px solid var(--border); border-radius:8px; background:#fff; cursor:pointer; font-size:13px; transition:all 0.2s; }
-  .sku-gran:hover { background:var(--primary); color:#fff; border-color:var(--primary); }
-  .sku-gran.active { background:var(--primary); color:#fff; border-color:var(--primary); }
-  .sku-checkboxes { display:flex; gap:16px; flex-wrap:wrap; align-items:center; }
-  .sku-chk { font-size:13px; display:flex; align-items:center; gap:5px; cursor:pointer; white-space:nowrap; }
-  .sku-chart-wrap { position:relative; height:440px; }
+.summary-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+.summary-tag { background:var(--primary-soft); color:var(--primary); padding:2px 10px; border-radius:12px; font-size:12px; font-weight:600; }
+
+.rank-controls { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+.rank-tabs { display:flex; gap:8px; flex-wrap:wrap; }
+.rank-tab { padding:8px 16px; border:1px solid var(--border); border-radius:8px; background:var(--surface-solid); color:var(--text); cursor:pointer; font-size:13px; transition:all 0.2s; }
+.rank-tab:hover { background:var(--primary); color:#0b1120; border-color:var(--primary); }
+.rank-tab.active { background:var(--primary); color:#0b1120; border-color:var(--primary); }
+.rank-controls select { border:1px solid var(--border); border-radius:8px; padding:8px 12px; font-size:14px; background:var(--surface-solid); color:var(--text); cursor:pointer; outline:none; min-width:190px; }
+.rank-controls select:focus { border-color:var(--primary); }
+.rank-note { font-size:12px; color:var(--muted); margin-top:8px; }
+.sku-tab { padding:8px 16px; border:1px solid var(--border); border-radius:8px; background:var(--surface-solid); color:var(--text); cursor:pointer; font-size:13px; transition:all 0.2s; }
+.sku-tab:hover { background:var(--primary); color:#0b1120; border-color:var(--primary); }
+.sku-tab.active { background:var(--primary); color:#0b1120; border-color:var(--primary); }
+.sku-gran { padding:8px 16px; border:1px solid var(--border); border-radius:8px; background:var(--surface-solid); color:var(--text); cursor:pointer; font-size:13px; transition:all 0.2s; }
+.sku-gran:hover { background:var(--primary); color:#0b1120; border-color:var(--primary); }
+.sku-gran.active { background:var(--primary); color:#0b1120; border-color:var(--primary); }
+.sku-checkboxes { display:flex; gap:16px; flex-wrap:wrap; align-items:center; }
+.sku-chk { font-size:13px; display:flex; align-items:center; gap:5px; cursor:pointer; white-space:nowrap; color:var(--text); }
+.sku-chart-wrap { position:relative; height:440px; }
+
+.side-card { background:var(--surface); border-radius:var(--radius); padding:20px; border:1px solid var(--border); box-shadow:var(--shadow); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); }
+.side-card .card-head { margin-bottom:12px; }
+.side-card h4 { font-size:14px; color:var(--muted); margin-bottom:10px; font-weight:600; }
+.ov-stats { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px; }
+.ov-stat .ov-label { font-size:12px; color:var(--muted); }
+.ov-stat .ov-num { font-size:22px; font-weight:800; color:var(--text); }
+.spark-wrap { height:60px; position:relative; }
+.spark-wrap canvas { width:100% !important; height:100% !important; }
+.quick-links { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.quick-links a { display:block; padding:10px; border-radius:10px; background:var(--surface-solid); border:1px solid var(--border); color:var(--text); text-decoration:none; font-size:13px; text-align:center; transition:all .2s; }
+.quick-links a:hover { background:var(--primary); color:#0b1120; border-color:var(--primary); }
+.notice-list { font-size:13px; color:var(--muted); line-height:1.7; padding-left:16px; margin:0; }
+.notice-list li { margin-bottom:6px; }
+
+@supports not (backdrop-filter:blur(1px)){
+  .kpi-card,.chart-card,.table-card,.analysis-section,.side-card,.date-range{ background:var(--surface-solid); }
+}
 
 @media (max-width:768px) {
   .container { padding:12px; }
+  .layout { grid-template-columns:1fr; }
+  .side-col { position:static; }
   .header { flex-direction:column; align-items:flex-start; gap:12px; }
   .header h1 { font-size:22px; }
   .header-right { width:100%; flex-direction:column; align-items:stretch; gap:10px; }
@@ -114,6 +163,7 @@
   .analysis-section { padding:16px; }
   .analysis-section h3 { font-size:16px; }
   .summary-tag { font-size:11px; padding:4px 8px; }
+  .side-card { padding:14px; }
 }
 @media (max-width:480px) {
   .header h1 { font-size:20px; }
@@ -122,8 +172,7 @@
   .rank-tab,.sku-tab,.sku-gran { font-size:13px; padding:10px 6px; }
   .sku-chart-wrap { height:280px; }
   table { font-size:11px; min-width:580px; }
-}
-</style>
+}</style>
 </head>
 <body>
 <div class="container">
@@ -148,34 +197,42 @@
   </div>
 </div>
 
+<div class="layout"><div class="main-col">
+
 <!-- KPI 指标卡 -->
 <div class="kpi-grid">
   <div class="kpi-card">
+    <div class="kpi-ico">💰</div>
     <div class="label">累计成交金额</div>
     <div class="value" id="kpiRevenue">¥—</div>
     <div class="change" id="kpiDailyRevenue">日均 ¥—</div>
   </div>
   <div class="kpi-card">
+    <div class="kpi-ico">📦</div>
     <div class="label">累计成交单量</div>
     <div class="value" id="kpiOrders">—</div>
     <div class="change" id="kpiDailyOrders">日均 — 单</div>
   </div>
   <div class="kpi-card">
+    <div class="kpi-ico">👥</div>
     <div class="label">累计访客数</div>
     <div class="value" id="kpiVisitors">—</div>
     <div class="change" id="kpiDailyVisitors">日均 — 人</div>
   </div>
   <div class="kpi-card">
+    <div class="kpi-ico">🔄</div>
     <div class="label">平均转化率</div>
     <div class="value" id="kpiCVR">—%</div>
     <div class="change" id="kpiBuyers">日均成交 — 人</div>
   </div>
   <div class="kpi-card">
+    <div class="kpi-ico">🏷️</div>
     <div class="label">平均客单价</div>
     <div class="value" id="kpiASP">¥—</div>
     <div class="change" id="kpiASPCompare">—</div>
   </div>
   <div class="kpi-card">
+    <div class="kpi-ico">👁️</div>
     <div class="label">累计浏览量</div>
     <div class="value" id="kpiViews">—</div>
     <div class="change" id="kpiDailyViews">日均 — 次</div>
@@ -206,7 +263,7 @@
 </div>
 
 <!-- 明细表 -->
-<div class="table-card">
+<div class="table-card" id="sec-detail">
   <h3>📋 店铺销售数据明细 <span class="tag-muted" style="font-size:12px;font-weight:400;">（可单独筛选区间）</span></h3>
   <div class="rank-controls" id="tableRangeControls">
     <div class="rank-tabs">
@@ -236,7 +293,7 @@
 
 
 <!-- 行业竞品排名 -->
-<div class="table-card" style="margin-top:24px;">
+<div class="table-card" id="sec-rank" style="margin-top:24px;">
   <h3>🏆 行业竞品排名</h3>
   <div class="rank-controls">
     <div class="rank-tabs">
@@ -255,7 +312,7 @@
 </div>
 
 <!-- 重点 SKU 销售看板 -->
-<div class="table-card" style="margin-top:24px;">
+<div class="table-card" id="sec-sku" style="margin-top:24px;">
   <h3>📦 重点 SKU 销售看板 <span class="tag-muted" style="font-size:12px;font-weight:400;">（自家不同规格 · 日 / 周 / 月 维度）</span></h3>
   <div class="rank-controls">
     <div class="rank-tabs">
@@ -288,14 +345,70 @@
 </div>
 
 <!-- 分析报告 -->
-<div class="analysis-section" id="analysisSection">
+<div class="analysis-section" id="sec-analysis">
   <h3>📝 自动分析报告</h3>
   <div id="analysisContent"></div>
 </div>
 
 </div>
 
+<aside class="side-col">
+  <div class="side-card overview">
+    <div class="card-head"><h3>📊 数据概览</h3><a href="#sec-analysis" class="more">智能分析 →</a></div>
+    <div class="ov-stats">
+      <div class="ov-stat"><div class="ov-label">累计成交金额</div><div class="ov-num" id="ovRevenue">¥—</div></div>
+      <div class="ov-stat"><div class="ov-label">累计成交单量</div><div class="ov-num" id="ovOrders">—</div></div>
+    </div>
+    <div class="spark-wrap"><canvas id="overviewSpark"></canvas></div>
+  </div>
+
+  <div class="side-card quick">
+    <div class="card-head"><h3>🚀 快捷功能</h3></div>
+    <div class="quick-links">
+      <a href="#sec-detail">店铺明细</a>
+      <a href="#sec-rank">行业排名</a>
+      <a href="#sec-sku">SKU 看板</a>
+      <a href="#sec-analysis">智能分析</a>
+    </div>
+  </div>
+
+  <div class="side-card notice">
+    <div class="card-head"><h3>📌 数据说明</h3></div>
+    <ul class="notice-list">
+      <li>数据来源：腾讯文档《耶气满满销售数据》。</li>
+      <li>行业排名仅展示已有快照的日期，↑/↓/新入榜已标注。</li>
+      <li>SKU 维度可选日/周/月，横向比规格，纵向比日期。</li>
+    </ul>
+  </div>
+</aside>
+
+</div>
+</div>
+
+
 <script>
+// 全局图表深色默认
+if (window.Chart) {
+  Chart.defaults.color = '#94a3b8';
+  Chart.defaults.borderColor = 'rgba(148,163,184,0.12)';
+  Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+  Chart.defaults.plugins.legend.labels.color = '#cbd5e1';
+}
+
+const C = {
+  primary:'#38bdf8', success:'#22c55e', warning:'#f59e0b', danger:'#f43f5e',
+  purple:'#a78bfa', pink:'#ec4899', teal:'#14b8a6', orange:'#f97316',
+  blue:'#60a5fa', lime:'#84cc16'
+};
+function vGrad(ctx, hex){
+  const c = ctx.chart ? ctx.chart.ctx : ctx;
+  const h = (c.canvas && c.canvas.height) || 320;
+  const g = c.createLinearGradient(0,0,0,h);
+  g.addColorStop(0, hex + 'cc');
+  g.addColorStop(1, hex + '10');
+  return g;
+}
+
 // ============ 全量数据 ============
 const ALL_DATA = [
   // 4月
@@ -509,6 +622,34 @@ function onTableRangeChange() {
   updateTable();
 }
 
+
+// ============ 右侧概览 sparkline ============
+function updateOverview(){
+  const d = filteredData;
+  const n = d.length;
+  if (n === 0) return;
+  const totalRevenue = d.reduce((s,x)=>s+x.revenue,0);
+  const totalOrders = d.reduce((s,x)=>s+x.orders,0);
+  document.getElementById('ovRevenue').textContent = '¥' + totalRevenue.toLocaleString();
+  document.getElementById('ovOrders').textContent = totalOrders.toLocaleString();
+
+  if (charts.overviewSpark) { charts.overviewSpark.destroy(); charts.overviewSpark = null; }
+  const ctx = document.getElementById('overviewSpark').getContext('2d');
+  charts.overviewSpark = new Chart(ctx, {
+    type: 'line',
+    data: { labels: d.map(x=>x.label), datasets:[{
+      label:'成交单量', data:d.map(x=>x.orders), borderColor:C.success,
+      backgroundColor:(c)=>vGrad(c,C.success), fill:true, tension:0.4,
+      pointRadius:0, pointHoverRadius:4, borderWidth:2
+    }] },
+    options: {
+      responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>c.raw+' 单'}}},
+      scales:{ x:{display:false}, y:{display:false, beginAtZero:true} },
+      elements:{point:{radius:0}}, interaction:{mode:'index',intersect:false}
+    }
+  });
+}
+
 // ============ 渲染全部 ============
 function renderAll() {
   if (filteredData.length === 0) return;
@@ -517,6 +658,7 @@ function renderAll() {
   updateCharts();
   updateTable();
   updateAnalysis();
+  updateOverview();
 }
 
 function updateBadge() {
@@ -562,10 +704,10 @@ function updateCharts() {
   });
 
   // 成交金额柱状图
-  const barColors = d.map(x => [0,6].includes(x.dow) ? '#f59e0b' : '#1a73e8');
+  const barColors = d.map(x => [0,6].includes(x.dow) ? C.warning : C.primary);
   charts.revenueChart = new Chart(document.getElementById('revenueChart'), {
     type: 'bar',
-    data: { labels, datasets: [{ label:'成交金额 (¥)', data: d.map(x=>x.revenue), backgroundColor:barColors, borderRadius:6 }] },
+    data: { labels, datasets: [{ label:'成交金额 (¥)', data: d.map(x=>x.revenue), backgroundColor:barColors, borderRadius:8, barPercentage:0.7 }] },
     options: {
       responsive:true, plugins:{legend:{display:false}, tooltip:{callbacks:{label:ctx=>'¥'+ctx.raw.toLocaleString()}}},
       scales:{ y:{beginAtZero:false, ticks:{callback:v=>'¥'+(v/1000).toFixed(0)+'k'}}, x:{grid:{display:false}} }
@@ -578,8 +720,8 @@ function updateCharts() {
     data: {
       labels,
       datasets: [
-        { label:'转化率 %', data:d.map(x=>x.cvr), borderColor:'#1a73e8', backgroundColor:'rgba(26,115,232,0.1)', fill:true, tension:0.3, yAxisID:'y' },
-        { label:'客单价 ¥', data:d.map(x=>x.asp), borderColor:'#0d9488', backgroundColor:'rgba(13,148,136,0.1)', fill:true, tension:0.3, yAxisID:'y1' }
+        { label:'转化率 %', data:d.map(x=>x.cvr), borderColor:C.primary, backgroundColor:(ctx)=>vGrad(ctx,C.primary), fill:true, tension:0.4, pointRadius:0, pointHoverRadius:5, borderWidth:2, yAxisID:'y' },
+        { label:'客单价 ¥', data:d.map(x=>x.asp), borderColor:C.success, backgroundColor:(ctx)=>vGrad(ctx,C.success), fill:true, tension:0.4, pointRadius:0, pointHoverRadius:5, borderWidth:2, yAxisID:'y1' }
       ]
     },
     options: {
@@ -609,8 +751,8 @@ function updateCharts() {
   charts.weeklyChart = new Chart(document.getElementById('weeklyChart'), {
     type: 'bar',
     data: { labels:wkLabels, datasets:[
-      {label:'周成交金额 (¥)',data:wkKeys.map(k=>weeks[k].revenue),backgroundColor:'#1a73e8',borderRadius:6},
-      {label:'周成交单量',data:wkKeys.map(k=>weeks[k].orders),backgroundColor:'#0d9488',borderRadius:6,yAxisID:'y1'}
+      {label:'周成交金额 (¥)',data:wkKeys.map(k=>weeks[k].revenue),backgroundColor:(ctx)=>vGrad(ctx,C.primary),borderRadius:8},
+      {label:'周成交单量',data:wkKeys.map(k=>weeks[k].orders),backgroundColor:(ctx)=>vGrad(ctx,C.success),borderRadius:8,yAxisID:'y1'}
     ]},
     options: {
       responsive:true, plugins:{legend:{position:'bottom'}},
@@ -634,8 +776,8 @@ function updateCharts() {
   charts.monthlyChart = new Chart(document.getElementById('monthlyChart'), {
     type: 'bar',
     data: { labels:moKeys, datasets:[
-      {label:'月成交金额 (¥)',data:moKeys.map(k=>months[k].revenue),backgroundColor:'#1a73e8',borderRadius:6,order:1},
-      {label:'日均 (¥)',data:moKeys.map(k=>Math.round(months[k].revenue/months[k].days)),backgroundColor:'#f59e0b',borderRadius:6,order:2}
+      {label:'月成交金额 (¥)',data:moKeys.map(k=>months[k].revenue),backgroundColor:(ctx)=>vGrad(ctx,C.primary),borderRadius:8,order:1},
+      {label:'日均 (¥)',data:moKeys.map(k=>Math.round(months[k].revenue/months[k].days)),backgroundColor:(ctx)=>vGrad(ctx,C.warning),borderRadius:8,order:2}
     ]},
     options: {
       responsive:true, plugins:{legend:{position:'bottom'}},
@@ -820,6 +962,10 @@ function renderRankTable() {
         else if (v.indexOf('↓') >= 0) cls = 'tag-down';
         return `<td><span class="${cls}">${v}</span></td>`;
       }
+      if (c.key === 'rank') {
+        const m = {'1':'🥇','2':'🥈','3':'🥉'};
+        return `<td><span class="medal">${m[v]||v}</span></td>`;
+      }
       if (c.key === 'name') return `<td><strong>${v}</strong></td>`;
       return `<td>${v}</td>`;
     }).join('') + '</tr>';
@@ -911,7 +1057,7 @@ function renderSku(){
   const granLabel={d:'日',w:'周',m:'月'}[skuGran];
   if(charts.skuChart){ charts.skuChart.destroy(); charts.skuChart=null; }
   const ctx=document.getElementById('skuChart');
-  const palette=['#1a73e8','#0d9488','#f59e0b','#ef4444','#8b5cf6','#ec4899','#14b8a6','#f97316','#3b82f6','#84cc16'];
+  const palette=[C.primary,C.success,C.warning,C.danger,C.purple,C.pink,C.teal,C.orange,C.blue,C.lime];
   if(skuMode==='h'){
     const pDays=getPeriodDays();
     const pLabel=document.getElementById('skuPeriod').value + (skuGran==='w'?'（周）':skuGran==='m'?'（月）':'');
@@ -919,7 +1065,7 @@ function renderSku(){
     pts.sort((a,b)=>b.v-a.v);
     charts.skuChart=new Chart(ctx,{
       type:'bar',
-      data:{ labels:pts.map(p=>p.spec), datasets:[{label:metric+'（'+granLabel+'）', data:pts.map(p=>p.v), backgroundColor:pts.map((p,i)=>palette[i%palette.length]), borderRadius:6}] },
+      data:{ labels:pts.map(p=>p.spec), datasets:[{label:metric+'（'+granLabel+'）', data:pts.map(p=>p.v), backgroundColor:pts.map((p,i)=>palette[i%palette.length]), borderRadius:8}] },
       options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{callbacks:{label:ctx=>fmtSkuVal(ctx.raw,mdef)}}},
         scales:{ y:{beginAtZero:true, ticks:{callback:v=>fmtSkuAxis(v,mdef)}}, x:{grid:{display:false}, ticks:{maxRotation:40,minRotation:25,autoSkip:false}} } }
     });
@@ -939,7 +1085,7 @@ function renderSku(){
       let data;
       if(skuGran==='d'){ data=s.data[metric]; }
       else { data=buckets.map(b=>aggMetric(s.data[metric],b.days,metric)); }
-      return {label:s.spec, data, borderColor:palette[k%palette.length], backgroundColor:palette[k%palette.length], fill:false, tension:0.25, spanGaps:true, pointRadius: skuGran==='d'?0:3, pointHoverRadius:4};
+      return {label:s.spec, data, borderColor:palette[k%palette.length], backgroundColor:palette[k%palette.length], fill:false, tension:0.35, spanGaps:true, pointRadius: skuGran==='d'?0:3, pointHoverRadius:5, borderWidth:2};
     });
     charts.skuChart=new Chart(ctx,{
       type:'line',
