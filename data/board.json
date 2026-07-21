@@ -1649,6 +1649,21 @@
       "items": 1389,
       "revenue": 47981.24,
       "asp": 52
+    },
+    {
+      "date": "2026-07-20",
+      "label": "7/20",
+      "month": 7,
+      "day": 20,
+      "dow": 1,
+      "views": 9243,
+      "visitors": 3564,
+      "buyers": 999,
+      "cvr": 28.03,
+      "orders": 1189,
+      "items": 1620,
+      "revenue": 52892.11,
+      "asp": 52.95
     }
   ],
   "skuSales": {
