@@ -905,7 +905,7 @@ const SKU_METRICS = [
   {key:'成交商品件数', fmt:'', axis:'件'},
   {key:'成交转化率', fmt:'%', axis:'%'}
 ];
-const SKU_DATES = SKU_SALES.dates.map(l=>{ const p=l.split('月'); const m=+p[0]; const d=+p[1].replace('日',''); return new Date(2026,m-1,d); });
+let SKU_DATES = [];
 function fmtMD(dt){ return (dt.getMonth()+1)+'/'+dt.getDate(); }
 function buildBuckets(){
   const wkMap={}, moMap={};
@@ -921,7 +921,7 @@ function buildBuckets(){
   const months=Object.keys(moMap).sort((a,b)=>(+a.replace('月',''))-(+b.replace('月',''))).map(k=>({key:k,label:k,days:moMap[k]}));
   return {weeks,months};
 }
-const SKU_BUCKETS = buildBuckets();
+let SKU_BUCKETS = null;
 function fmtSkuVal(v,m){ if(v==null) return '—'; if(m.fmt==='¥') return '¥'+Math.round(v).toLocaleString(); if(m.fmt==='%') return v.toFixed(2)+'%'; return Math.round(v).toLocaleString(); }
 function fmtSkuAxis(v,m){ if(m.fmt==='¥') return '¥'+(v/1000).toFixed(0)+'k'; if(m.fmt==='%') return v+'%'; if(Math.abs(v)>=10000) return (v/1000).toFixed(0)+'k'; return v; }
 function aggMetric(values, idxs, metric){
@@ -1028,6 +1028,8 @@ async function boot() {
     ALL_DATA = board.allData || [];
     RANK_DATA = board.rankData || {};
     SKU_SALES = board.skuSales || {};
+    SKU_DATES = (SKU_SALES.dates || []).map(l=>{ const p=l.split('月'); const m=+p[0]; const d=+p[1].replace('日',''); return new Date(2026,m-1,d); });
+    SKU_BUCKETS = buildBuckets();
   } catch (e) {
     console.error('加载数据失败：', e);
     if (statusEl) statusEl.textContent = '⚠️ 数据加载失败：' + e.message;
