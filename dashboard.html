@@ -91,9 +91,6 @@ tbody tr:nth-child(even) { background:rgba(255,255,255,0.015); }
 .tag-up { color:var(--success); font-weight:600; }
 .tag-down { color:var(--danger); font-weight:600; }
 .tag-muted { color:var(--muted); font-weight:600; }
-.cell-chg { font-size:11px; line-height:1.35; margin-top:3px; font-weight:400; }
-.cell-chg-up { color:var(--danger); }
-.cell-chg-down { color:var(--success); }
 .medal { font-size:14px; }
 
 .analysis-section { background:var(--surface); border-radius:var(--radius); padding:24px; border:1px solid var(--border); box-shadow:var(--shadow); margin-bottom:0; backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); }
@@ -446,17 +443,17 @@ function toggleTheme(){
 }
 
 // ============ 全量数据 ============
-let ALL_DATA;
+let ALL_DATA = [];
 
 
 // ============ 行业竞品排名数据 ============
-let RANK_DATA;
+let RANK_DATA = {};
 
-let SKU_SALES;
+let SKU_SALES = {};
 
 // ============ 全局状态 ============
-let filteredData = [];
-let tableData = [];
+let filteredData = [...ALL_DATA];
+let tableData = [...ALL_DATA];   // 明细表独立区间
 let charts = {};
 
 // ============ 初始化日期选择器 ============
@@ -825,41 +822,26 @@ function updateAnalysis() {
 const RANK_COLS = {
   shops: [
     {key:'rank',label:'排名'},{key:'change',label:'排名变化'},{key:'name',label:'店铺名称'},
-    {key:'revenue',label:'成交金额', chg:'revenueChg'},
-    {key:'visitors',label:'访客数', chg:'visitorsChg'},
-    {key:'orders',label:'成交单量', chg:'ordersChg'},
-    {key:'search',label:'搜索点击次数', chg:'searchChg'}
+    {key:'revenue',label:'成交金额'},{key:'revenueChg',label:'成交金额变动'},{key:'visitors',label:'访客数'},
+    {key:'visitorsChg',label:'访客数变动'},{key:'orders',label:'成交单量'},{key:'ordersChg',label:'成交单量变动'},
+    {key:'search',label:'搜索点击次数'},{key:'searchChg',label:'搜索点击次数变动'}
   ],
   spus: [
     {key:'rank',label:'排名'},{key:'change',label:'排名变化'},{key:'name',label:'商品名称'},{key:'id',label:'SPU'},
-    {key:'revenue',label:'成交金额', share:'revenueShare'},
-    {key:'visitors',label:'访客数', chg:'visitorsChg'},
-    {key:'orders',label:'成交单量', share:'ordersShare'},
-    {key:'search',label:'搜索点击次数', chg:'searchChg'}
+    {key:'revenue',label:'成交金额'},{key:'revenueShare',label:'成交金额占比'},{key:'visitors',label:'访客数'},
+    {key:'visitorsChg',label:'访客数同比'},{key:'orders',label:'成交单量'},{key:'ordersShare',label:'成交单量占比'},
+    {key:'search',label:'搜索点击次数'},{key:'searchChg',label:'搜索点击次数同比'}
   ],
   skus: [
     {key:'rank',label:'排名'},{key:'change',label:'排名变化'},{key:'name',label:'商品名称'},{key:'id',label:'SKU'},
-    {key:'revenue',label:'成交金额', share:'revenueShare'},
-    {key:'visitors',label:'访客数', chg:'visitorsChg'},
-    {key:'orders',label:'成交单量', share:'ordersShare'},
-    {key:'search',label:'搜索点击次数', chg:'searchChg'}
+    {key:'revenue',label:'成交金额'},{key:'revenueShare',label:'成交金额占比'},{key:'visitors',label:'访客数'},
+    {key:'visitorsChg',label:'访客数同比'},{key:'orders',label:'成交单量'},{key:'ordersShare',label:'成交单量占比'},
+    {key:'search',label:'搜索点击次数'},{key:'searchChg',label:'搜索点击次数同比'}
   ]
 };
 let currentRankTab = 'shops';
 
 function tabLabel(t){ return t==='shops'?'行业店铺':t==='spus'?'商品SPU':'商品SKU'; }
-
-function chgIsUp(s){
-  if(!s) return null;
-  if(s.indexOf('↑')>=0) return true;
-  if(s.indexOf('↓')>=0) return false;
-  const nums=(s.match(/-?\d+(\.\d+)?/g)||[]).map(Number);
-  if(nums.length===0) return null;
-  const anyPos=nums.some(n=>n>0), anyNeg=nums.some(n=>n<0);
-  if(anyPos && !anyNeg) return true;
-  if(anyNeg && !anyPos) return false;
-  return anyPos ? true : (anyNeg ? false : null);
-}
 
 function initRankSelector() {
   const dates = [];
@@ -902,16 +884,7 @@ function renderRankTable() {
         return `<td><span class="medal">${m[v]||v}</span></td>`;
       }
       if (c.key === 'name') return `<td><strong>${v}</strong></td>`;
-      let sub = '';
-      if (c.chg) {
-        const cv = r[c.chg];
-        if (cv !== undefined && cv !== null && cv !== '' && cv !== '—') {
-          const up = chgIsUp(cv);
-          const ccls = up === null ? 'cell-chg' : (up ? 'cell-chg cell-chg-up' : 'cell-chg cell-chg-down');
-          sub = `<div class="${ccls}">${cv}</div>`;
-        }
-      }
-      return `<td>${v}${sub}</td>`;
+      return `<td>${v}</td>`;
     }).join('') + '</tr>';
   });
   document.getElementById('rankBody').innerHTML = html;
@@ -978,8 +951,8 @@ function buildSkuPeriod(gran, defVal){
 function switchSkuMode(m){
   skuMode=m;
   document.querySelectorAll('.sku-tab').forEach(b=>b.classList.toggle('active', (m==='h'&&b.textContent.indexOf('横向')>=0)||(m==='v'&&b.textContent.indexOf('纵向')>=0)));
-  document.getElementById('skuPeriod').style.display = 'inline-block';
-  document.getElementById('skuPeriodLabel').style.display = 'inline';
+  document.getElementById('skuPeriod').style.display = m==='h'?'inline-block':'none';
+  document.getElementById('skuPeriodLabel').style.display = m==='h'?'inline':'none';
   document.getElementById('skuListWrap').style.display = m==='v'?'flex':'none';
   renderSku();
 }
@@ -1021,21 +994,23 @@ function renderSku(){
       (max?`<span class="summary-tag">🥇 最高 ${max.spec} ${fmtSkuVal(max.v,mdef)}</span>`:'')+
       (min&&pts.length>1?`<span class="summary-tag">🔻 最低 ${min.spec} ${fmtSkuVal(min.v,mdef)}</span>`:'');
   } else {
-    const periodDays = getPeriodDays();
-    const labels = periodDays.map(i=>SKU_SALES.dates[i]);
+    const buckets = skuGran==='w'?SKU_BUCKETS.weeks:SKU_BUCKETS.months;
+    const labels = skuGran==='d'?SKU_SALES.dates:buckets.map(b=>b.label);
     const idxs=[...document.querySelectorAll('#skuChecks input:checked')].map(c=>+c.value);
     const datasets = idxs.map((i,k)=>{
       const s=SKU_SALES.skus[i];
-      const data = periodDays.map(di => s.data[metric] ? s.data[metric][di] : null);
-      return {label:s.spec, data, borderColor:palette[k%palette.length], backgroundColor:palette[k%palette.length], fill:false, tension:0.35, spanGaps:true, pointRadius:3, pointHoverRadius:5, borderWidth:2};
+      let data;
+      if(skuGran==='d'){ data=s.data[metric]; }
+      else { data=buckets.map(b=>aggMetric(s.data[metric],b.days,metric)); }
+      return {label:s.spec, data, borderColor:palette[k%palette.length], backgroundColor:palette[k%palette.length], fill:false, tension:0.35, spanGaps:true, pointRadius: skuGran==='d'?0:3, pointHoverRadius:5, borderWidth:2};
     });
     charts.skuChart=new Chart(ctx,{
       type:'line',
       data:{ labels, datasets },
       options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false}, plugins:{legend:{position:'bottom'}, tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+fmtSkuVal(ctx.raw,mdef)}}},
-        scales:{ y:{beginAtZero: metric!=='成交转化率', ticks:{callback:v=>fmtSkuAxis(v,mdef)}}, x:{ticks:{maxTicksLimit: periodDays.length>20?20:periodDays.length, autoSkip:true}} } }
+        scales:{ y:{beginAtZero: metric!=='成交转化率', ticks:{callback:v=>fmtSkuAxis(v,mdef)}}, x:{ticks:{maxTicksLimit: skuGran==='d'?20:18, autoSkip:true}} } }
     });
-    const range = periodDays.length ? (SKU_SALES.dates[periodDays[0]]+' ~ '+SKU_SALES.dates[periodDays[periodDays.length-1]]) : '—';
+    const range = skuGran==='d' ? (SKU_SALES.dates[0]+' ~ '+SKU_SALES.dates[SKU_SALES.dates.length-1]) : (labels[0]+' ~ '+labels[labels.length-1]);
     document.getElementById('skuSummary').innerHTML =
       `<span class="summary-tag">📊 ${metric} · ${granLabel}维度</span>`+
       `<span class="summary-tag">🧮 对比 ${idxs.length} 个规格</span>`+
@@ -1043,111 +1018,28 @@ function renderSku(){
   }
 }
 
-// ============ 启动（动态加载 data.json） ============
-function boot() {
-  ALL_DATA = window.__DATA__.allData;
-  RANK_DATA = window.__DATA__.rankData;
-  SKU_SALES = window.__DATA__.skuSales;
-  filteredData = [...ALL_DATA];
-  tableData = [...ALL_DATA];
+// ============ 启动（数据驱动） ============
+async function boot() {
+  const statusEl = document.getElementById('status');
+  try {
+    const res = await fetch('./data/board.json', { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const board = await res.json();
+    ALL_DATA = board.allData || [];
+    RANK_DATA = board.rankData || {};
+    SKU_SALES = board.skuSales || {};
+  } catch (e) {
+    console.error('加载数据失败：', e);
+    if (statusEl) statusEl.textContent = '⚠️ 数据加载失败：' + e.message;
+  }
   initSelectors();
   initTableRange();
   initRankSelector();
   initSku();
-  try { applyTheme(localStorage.getItem('dashboard-theme') || 'dark', false); } catch(e){}
+  try { applyTheme(localStorage.getItem('dashboard-theme') || 'dark', false); } catch (e) {}
   quickRange('all');
 }
-(function loadData(){
-  function showLoadError(msg){
-    const box = document.createElement('div');
-    box.style.cssText = 'padding:16px;color:#c0392b;font-weight:700;background:#fff3f3;border:1px solid #f3c2c2;border-radius:8px;margin:12px';
-    box.textContent = '⚠️ 数据加载失败：' + msg + '。请确认 data-manifest.json 与 data-2026-Wxx.json 周文件与 dashboard.html 同目录，且通过 http(s) 访问（本地直接双击 file:// 会被浏览器拦截 fetch）。';
-    document.body.insertBefore(box, document.body.firstChild);
-  }
-  // 兜底：清单和周文件都拉不到时，尝试老式单文件 data.json
-  function trySingleFallback(err){
-    fetch('./data.json?_=' + Date.now(), {cache:'no-store'})
-      .then(r => { if(!r.ok) throw new Error('no-single'); return r.text(); })
-      .then(txt => { window.__DATA__ = JSON.parse(txt); boot(); })
-      .catch(() => showLoadError((err && err.message) ? err.message : '未找到 data-manifest.json / 周文件 / data.json'));
-  }
-
-  // 合并多周文件为一个完整 __DATA__
-  function mergeWeeks(parts){
-    const merged = { allData: [], rankData: { shops:{}, spus:{}, skus:{} }, skuSales: { dates:[], metrics:[], skus:[] } };
-    // 1) allData：拼接后按日期升序
-    parts.forEach(p => { if (p && Array.isArray(p.allData)) merged.allData.push(...p.allData); });
-    merged.allData.sort((a,b) => (a.date < b.date ? -1 : (a.date > b.date ? 1 : 0)));
-    // 2) rankData：日期键地图深合并
-    parts.forEach(p => {
-      if (!p || !p.rankData) return;
-      ['shops','spus','skus'].forEach(k => {
-        const src = p.rankData[k] || {};
-        Object.keys(src).forEach(d => { merged.rankData[k][d] = src[d]; });
-      });
-    });
-    // 3) skuSales：dates 拼接；metrics 取首个非空周；skus 按 id 对齐逐周拼接（缺失周补 null 保持对齐）
-    const skuMap = new Map();
-    let metrics = [];
-    parts.forEach(p => {
-      if (!p || !p.skuSales) return;
-      const w = p.skuSales;
-      if (!metrics.length && Array.isArray(w.metrics)) metrics = w.metrics.slice();
-      const wkDates = w.dates || [];
-      const wkLen = wkDates.length;
-      const datesSoFar = merged.skuSales.dates.length;
-      merged.skuSales.dates.push(...wkDates);
-      (w.skus || []).forEach(sku => {
-        let m = skuMap.get(sku.id);
-        if (!m) {
-          m = { name: sku.name, id: sku.id, spec: sku.spec, data: {} };
-          (w.metrics || metrics).forEach(mt => { m.data[mt] = []; });
-          skuMap.set(sku.id, m);
-        }
-        (w.metrics || metrics).forEach(mt => {
-          while (m.data[mt].length < datesSoFar) m.data[mt].push(null); // 补前期缺失周
-          const arr = (sku.data && sku.data[mt]) || [];
-          m.data[mt].push(...arr);
-        });
-      });
-      // 本周缺失的 sku 也补齐 null，保持与 dates 对齐
-      skuMap.forEach(m => {
-        (metrics.length ? metrics : (w.metrics || [])).forEach(mt => {
-          if (!m.data[mt]) m.data[mt] = [];
-          while (m.data[mt].length < merged.skuSales.dates.length) m.data[mt].push(null);
-        });
-      });
-    });
-    merged.skuSales.metrics = metrics;
-    merged.skuSales.skus = Array.from(skuMap.values()).map(m => ({ name:m.name, id:m.id, spec:m.spec, data:m.data }));
-    return merged;
-  }
-
-  // 入口：先读清单，再逐周拉取合并
-  fetch('./data-manifest.json?_=' + Date.now(), {cache:'no-store'})
-    .then(r => { if(!r.ok) throw new Error('manifest 文件缺失 (HTTP ' + r.status + ')'); return r.json(); })
-    .then(manifest => {
-      const files = (manifest.files && manifest.files.length) ? manifest.files
-                  : (manifest.weeks || []).map(w => 'data-' + w + '.json');
-      if (!files.length) throw new Error('清单中无任何周文件');
-      let done = 0; const parts = new Array(files.length); let failed = [];
-      files.forEach((f, idx) => {
-        fetch('./' + f + '?_=' + Date.now(), {cache:'no-store'})
-          .then(r => { if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-          .then(j => { parts[idx] = j; })
-          .catch(e => { failed.push(f + '(' + (e.message||'err') + ')'); parts[idx] = null; })
-          .finally(() => { done++; if (done === files.length) finish(); });
-      });
-      function finish(){
-        const valid = parts.filter(Boolean);
-        if (!valid.length) { showLoadError('所有周文件均加载失败：' + failed.join('、')); return; }
-        try { window.__DATA__ = mergeWeeks(valid); boot(); }
-        catch(e){ showLoadError('周文件合并失败：' + (e.message||e)); }
-        if (failed.length) console.warn('部分周文件跳过（已忽略）：', failed);
-      }
-    })
-    .catch(err => { console.warn('manifest 加载失败，尝试单文件回退：', err); trySingleFallback(err); });
-})();
+boot();
 </script>
 </body>
 </html>
