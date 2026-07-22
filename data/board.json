@@ -1923,7 +1923,7 @@
             12275.95,
             9678.16,
             null,
-            null,
+            6380.13,
             null
           ],
           "商品访客数": [
@@ -2038,7 +2038,7 @@
             450,
             412,
             null,
-            null,
+            395,
             null
           ],
           "商品浏览量": [
@@ -2153,7 +2153,7 @@
             1009,
             795,
             null,
-            null,
+            763,
             null
           ],
           "加购商品件数": [
@@ -2268,7 +2268,7 @@
             115,
             30,
             null,
-            null,
+            -137,
             null
           ],
           "成交商品件数": [
@@ -2383,7 +2383,7 @@
             131,
             104,
             null,
-            null,
+            68,
             null
           ],
           "成交转化率": [
@@ -2498,7 +2498,7 @@
             25.11,
             22.33,
             null,
-            null,
+            15.7,
             null
           ]
         }
@@ -2620,7 +2620,7 @@
             7629.29,
             5827.52,
             null,
-            null,
+            5240.56,
             null
           ],
           "商品访客数": [
@@ -2735,7 +2735,7 @@
             730,
             701,
             null,
-            null,
+            665,
             null
           ],
           "商品浏览量": [
@@ -2850,7 +2850,7 @@
             1500,
             1341,
             null,
-            null,
+            1343,
             null
           ],
           "加购商品件数": [
@@ -2965,7 +2965,7 @@
             104,
             113,
             null,
-            null,
+            41,
             null
           ],
           "成交商品件数": [
@@ -3080,7 +3080,7 @@
             155,
             118,
             null,
-            null,
+            105,
             null
           ],
           "成交转化率": [
@@ -3195,7 +3195,7 @@
             17.26,
             14.69,
             null,
-            null,
+            13.53,
             null
           ]
         }
@@ -4014,7 +4014,7 @@
             6560.19,
             7259.97,
             null,
-            null,
+            6380.2,
             null
           ],
           "商品访客数": [
@@ -4129,7 +4129,7 @@
             658,
             688,
             null,
-            null,
+            646,
             null
           ],
           "商品浏览量": [
@@ -4244,7 +4244,7 @@
             1286,
             1371,
             null,
-            null,
+            1315,
             null
           ],
           "加购商品件数": [
@@ -4359,7 +4359,7 @@
             74,
             73,
             null,
-            null,
+            29,
             null
           ],
           "成交商品件数": [
@@ -4474,7 +4474,7 @@
             75,
             83,
             null,
-            null,
+            73,
             null
           ],
           "成交转化率": [
@@ -4589,7 +4589,7 @@
             10.33,
             10.32,
             null,
-            null,
+            9.75,
             null
           ]
         }
@@ -4711,7 +4711,7 @@
             5561.4,
             7774.5,
             null,
-            null,
+            3362.67,
             null
           ],
           "商品访客数": [
@@ -4826,7 +4826,7 @@
             625,
             640,
             null,
-            null,
+            437,
             null
           ],
           "商品浏览量": [
@@ -4941,7 +4941,7 @@
             1280,
             1310,
             null,
-            null,
+            857,
             null
           ],
           "加购商品件数": [
@@ -5056,7 +5056,7 @@
             51,
             47,
             null,
-            null,
+            46,
             null
           ],
           "成交商品件数": [
@@ -5171,7 +5171,7 @@
             57,
             80,
             null,
-            null,
+            34,
             null
           ],
           "成交转化率": [
@@ -5286,7 +5286,7 @@
             7.04,
             8.59,
             null,
-            null,
+            6.86,
             null
           ]
         }
@@ -5408,7 +5408,7 @@
             6013.95,
             5630.45,
             null,
-            null,
+            4810.99,
             null
           ],
           "商品访客数": [
@@ -5523,7 +5523,7 @@
             620,
             552,
             null,
-            null,
+            495,
             null
           ],
           "商品浏览量": [
@@ -5638,7 +5638,7 @@
             1064,
             1036,
             null,
-            null,
+            832,
             null
           ],
           "加购商品件数": [
@@ -5753,7 +5753,7 @@
             74,
             -36,
             null,
-            null,
+            -1238,
             null
           ],
           "成交商品件数": [
@@ -5868,7 +5868,7 @@
             569,
             545,
             null,
-            null,
+            465,
             null
           ],
           "成交转化率": [
@@ -5983,6 +5983,7 @@
             56.94,
             61.23,
             null,
+            60.0,
             null
           ]
         }
@@ -6104,7 +6105,7 @@
             2487,
             1939.36,
             null,
-            null,
+            2016.8,
             null
           ],
           "商品访客数": [
@@ -6219,7 +6220,7 @@
             259,
             267,
             null,
-            null,
+            241,
             null
           ],
           "商品浏览量": [
@@ -6334,7 +6335,7 @@
             483,
             444,
             null,
-            null,
+            446,
             null
           ],
           "加购商品件数": [
@@ -6449,7 +6450,7 @@
             28,
             18,
             null,
-            null,
+            30,
             null
           ],
           "成交商品件数": [
@@ -6564,7 +6565,7 @@
             32,
             25,
             null,
-            null,
+            26,
             null
           ],
           "成交转化率": [
@@ -6679,6 +6680,7 @@
             10.81,
             8.99,
             null,
+            9.96,
             null
           ]
         }
@@ -6800,7 +6802,7 @@
             6343.51,
             6120.84,
             null,
-            null,
+            4633.8,
             null
           ],
           "商品访客数": [
@@ -6915,7 +6917,7 @@
             441,
             479,
             null,
-            null,
+            443,
             null
           ],
           "商品浏览量": [
@@ -7030,7 +7032,7 @@
             774,
             846,
             null,
-            null,
+            840,
             null
           ],
           "加购商品件数": [
@@ -7145,7 +7147,7 @@
             69,
             42,
             null,
-            null,
+            60,
             null
           ],
           "成交商品件数": [
@@ -7260,7 +7262,7 @@
             245,
             237,
             null,
-            null,
+            179,
             null
           ],
           "成交转化率": [
@@ -7375,6 +7377,7 @@
             43.54,
             39.46,
             null,
+            31.83,
             null
           ]
         }
@@ -7496,7 +7499,7 @@
             1400.92,
             898.81,
             null,
-            null,
+            998.0,
             null
           ],
           "商品访客数": [
@@ -7611,7 +7614,7 @@
             151,
             121,
             null,
-            null,
+            109,
             null
           ],
           "商品浏览量": [
@@ -7726,7 +7729,7 @@
             306,
             217,
             null,
-            null,
+            182,
             null
           ],
           "加购商品件数": [
@@ -7841,7 +7844,7 @@
             39,
             5,
             null,
-            null,
+            17,
             null
           ],
           "成交商品件数": [
@@ -7956,7 +7959,7 @@
             14,
             9,
             null,
-            null,
+            10,
             null
           ],
           "成交转化率": [
@@ -8071,7 +8074,7 @@
             9.27,
             7.44,
             null,
-            null,
+            8.26,
             null
           ]
         }
@@ -8193,7 +8196,7 @@
             1124.4,
             1054.7,
             null,
-            null,
+            2706.4,
             null
           ],
           "商品访客数": [
@@ -8308,7 +8311,7 @@
             243,
             191,
             null,
-            null,
+            302,
             null
           ],
           "商品浏览量": [
@@ -8423,7 +8426,7 @@
             415,
             318,
             null,
-            null,
+            436,
             null
           ],
           "加购商品件数": [
@@ -8538,7 +8541,7 @@
             3,
             7,
             null,
-            null,
+            19,
             null
           ],
           "成交商品件数": [
@@ -8653,7 +8656,7 @@
             56,
             53,
             null,
-            null,
+            137,
             null
           ],
           "成交转化率": [
@@ -8768,7 +8771,7 @@
             22.22,
             26.18,
             null,
-            null,
+            42.05,
             null
           ]
         }
@@ -18978,6 +18981,138 @@
           "ordersChg": "6%~8%",
           "search": "4,000~6,000",
           "searchChg": "-2.27%"
+        }
+      ],
+      "2026/7/21": [
+        {
+          "rank": 1,
+          "change": "持平",
+          "name": "农夫山泉京东自营旗舰店",
+          "revenue": "¥25万~¥50万",
+          "revenueChg": "-8%~-6%",
+          "visitors": "8000~1万",
+          "visitorsChg": "0.62%",
+          "orders": "2000~4000",
+          "ordersChg": "-4%~-2%",
+          "search": "8000~1万",
+          "searchChg": "-0.60%"
+        },
+        {
+          "rank": 2,
+          "change": "↑2",
+          "name": "金豆芽京东自营旗舰店",
+          "revenue": "¥10万~¥25万",
+          "revenueChg": "-4%~-2%",
+          "visitors": "1万~2万",
+          "visitorsChg": "-1.92%",
+          "orders": "4000~6000",
+          "ordersChg": "-12%~-10%",
+          "search": "8000~1万",
+          "searchChg": "4.24%"
+        },
+        {
+          "rank": 3,
+          "change": "↓1",
+          "name": "轻上（LIGHT UPPER）京东自营旗舰店",
+          "revenue": "¥10万~¥25万",
+          "revenueChg": "-14%~-12%",
+          "visitors": "1万~2万",
+          "visitorsChg": "3.43%",
+          "orders": "2000~4000",
+          "ordersChg": "-4%~-2%",
+          "search": "1万~2万",
+          "searchChg": "9.31%"
+        },
+        {
+          "rank": 4,
+          "change": "↑1",
+          "name": "三鲸京东自营旗舰店",
+          "revenue": "¥10万~¥25万",
+          "revenueChg": "-12%~-10%",
+          "visitors": "2000~4000",
+          "visitorsChg": "5.34%",
+          "orders": "1000~2000",
+          "ordersChg": "-8%~-6%",
+          "search": "2000~4000",
+          "searchChg": "4.22%"
+        },
+        {
+          "rank": 5,
+          "change": "↑3",
+          "name": "山姆会员商店官方旗舰店",
+          "revenue": "¥10万~¥25万",
+          "revenueChg": "0%~-2%",
+          "visitors": "8000~1万",
+          "visitorsChg": "1.70%",
+          "orders": "1000~2000",
+          "ordersChg": "2%~-4%",
+          "search": "2000~4000",
+          "searchChg": "-1.20%"
+        },
+        {
+          "rank": 6,
+          "change": "持平",
+          "name": "轻上京东自营旗舰店",
+          "revenue": "¥10万~¥25万",
+          "revenueChg": "-20%~-18%",
+          "visitors": "1万~2万",
+          "visitorsChg": "10.10%",
+          "orders": "2000~4000",
+          "ordersChg": "6%~-4%",
+          "search": "1万~2万",
+          "searchChg": "1.86%"
+        },
+        {
+          "rank": 7,
+          "change": "持平",
+          "name": "if饮料京东自营旗舰店",
+          "revenue": "¥10万~¥25万",
+          "revenueChg": "-14%~-12%",
+          "visitors": "2000~4000",
+          "visitorsChg": "-6.51%",
+          "orders": "1000~2000",
+          "ordersChg": "-12%~-10%",
+          "search": "2000~4000",
+          "searchChg": "-0.68%"
+        },
+        {
+          "rank": 8,
+          "change": "↓5",
+          "name": "可口可乐京东自营旗舰店",
+          "revenue": "¥10万~¥25万",
+          "revenueChg": "-36%~-34%",
+          "visitors": "6000~8000",
+          "visitorsChg": "4.15%",
+          "orders": "1000~2000",
+          "ordersChg": "4%~-2%",
+          "search": "4000~6000",
+          "searchChg": "2.28%"
+        },
+        {
+          "rank": 9,
+          "change": "持平",
+          "name": "京东京造自营旗舰店",
+          "revenue": "¥10万~¥25万",
+          "revenueChg": "-2%~0%",
+          "visitors": "6000~8000",
+          "visitorsChg": "2.49%",
+          "orders": "2000~4000",
+          "ordersChg": "0%~-2%",
+          "search": "6000~8000",
+          "searchChg": "5.47%"
+        },
+        {
+          "rank": 10,
+          "change": "新入榜",
+          "name": "冠芳京东自营旗舰店",
+          "revenue": "¥6万~¥9万",
+          "revenueChg": "108%~-110%",
+          "visitors": "1000~2000",
+          "visitorsChg": "-8.87%",
+          "orders": "400~600",
+          "ordersChg": "-10%~-8%",
+          "search": "2000~4000",
+          "searchChg": "5.02%"
         }
       ]
     },
@@ -29957,6 +30092,148 @@
           "search": "600~800",
           "searchChg": "-10.68%"
         }
+      ],
+      "2026/7/21": [
+        {
+          "rank": 1,
+          "change": "持平",
+          "name": "农夫山泉100%纯果汁NFC橙汁30",
+          "id": "53271144",
+          "revenue": "¥10万~¥25万",
+          "revenueShare": "-2%~-4%",
+          "visitors": "4000~6000",
+          "visitorsChg": "-6.73%",
+          "orders": "1000~2000",
+          "ordersShare": "-4%~-2%",
+          "search": "4000~6000",
+          "searchChg": "1.64%"
+        },
+        {
+          "rank": 2,
+          "change": "持平",
+          "name": "三鲸100%NFC椰子水330ml*24",
+          "id": "100020805609",
+          "revenue": "¥10万~¥25万",
+          "revenueShare": "-12%~-10%",
+          "visitors": "2000~4000",
+          "visitorsChg": "5.51%",
+          "orders": "1000~2000",
+          "ordersShare": "8%~-6%",
+          "search": "2000~4000",
+          "searchChg": "2.22%"
+        },
+        {
+          "rank": 3,
+          "change": "持平",
+          "name": "金豆芽金银花柚子汁儿童饮品夏天",
+          "id": "100008472687",
+          "revenue": "¥10万~¥25万",
+          "revenueShare": "-4%~-4%",
+          "visitors": "1万~2万",
+          "visitorsChg": "-2.97%",
+          "orders": "2000~4000",
+          "ordersShare": "-14%~-12%",
+          "search": "8000~1万",
+          "searchChg": "2.70%"
+        },
+        {
+          "rank": 4,
+          "change": "↑2",
+          "name": "if【肖岚推荐】100%纯椰子水果",
+          "id": "100110442629",
+          "revenue": "¥2万~¥5万",
+          "revenueShare": "2%~-4%",
+          "visitors": "2000~4000",
+          "visitorsChg": "0.07%",
+          "orders": "800~1000",
+          "ordersShare": "8%~-6%",
+          "search": "2000~4000",
+          "searchChg": "8.41%"
+        },
+        {
+          "rank": 5,
+          "change": "↑2",
+          "name": "轻上牛山苹果四神汤苹果汁儿",
+          "id": "100288911854",
+          "revenue": "¥8万~¥10万",
+          "revenueShare": "0%~-2%",
+          "visitors": "6000~8000",
+          "visitorsChg": "6.27%",
+          "orders": "2000~4000",
+          "ordersShare": "0%~-2%",
+          "search": "4000~6000",
+          "searchChg": "9.76%"
+        },
+        {
+          "rank": 6,
+          "change": "↓1",
+          "name": "轻上（LIGHT UPPER）100%椰子",
+          "id": "100103922320",
+          "revenue": "¥8万~¥10万",
+          "revenueShare": "-30%~-28%",
+          "visitors": "8000~1万",
+          "visitorsChg": "5.24%",
+          "orders": "1000~2000",
+          "ordersShare": "6%~-4%",
+          "search": "8000~1万",
+          "searchChg": "0.01%"
+        },
+        {
+          "rank": 7,
+          "change": "↓3",
+          "name": "可口可乐（Coca-Cola）美汁源",
+          "id": "46046568",
+          "revenue": "¥6万~¥8万",
+          "revenueShare": "-48%~-46%",
+          "visitors": "2000~4000",
+          "visitorsChg": "12.09%",
+          "orders": "600~800",
+          "ordersShare": "-10%~-8%",
+          "search": "1000~2000",
+          "searchChg": "-2.83%"
+        },
+        {
+          "rank": 8,
+          "change": "↑12",
+          "name": "冠芳山楂树下山楂汁饮料解腻开胃",
+          "id": "48110146",
+          "revenue": "¥6万~¥8万",
+          "revenueShare": "138%~-140%",
+          "visitors": "1000~2000",
+          "visitorsChg": "-3.54%",
+          "orders": "200~400",
+          "ordersShare": "-12%~-10%",
+          "search": "1000~2000",
+          "searchChg": "3.58%"
+        },
+        {
+          "rank": 9,
+          "change": "↓1",
+          "name": "农夫山泉水溶C100柠檬味复合果",
+          "id": "848890",
+          "revenue": "¥6万~¥8万",
+          "revenueShare": "-24%~-22%",
+          "visitors": "2000~4000",
+          "visitorsChg": "-1.42%",
+          "orders": "800~1000",
+          "ordersShare": "-2%~0%",
+          "search": "4000~6000",
+          "searchChg": "-1.45%"
+        },
+        {
+          "rank": 10,
+          "change": "↓1",
+          "name": "基谷村100%NFC白桃汁纯天然",
+          "id": "10186823620",
+          "revenue": "¥6万~¥8万",
+          "revenueShare": "2%~0%",
+          "visitors": "6000~8000",
+          "visitorsChg": "27.39%",
+          "orders": "1000~2000",
+          "ordersShare": "4%~-6%",
+          "search": "4000~6000",
+          "searchChg": "8.18%"
+        }
       ]
     },
     "skus": {
@@ -40934,6 +41211,148 @@
           "ordersShare": "26%~28%",
           "search": "600~800",
           "searchChg": "+21.26%"
+        }
+      ],
+      "2026/7/21": [
+        {
+          "rank": 1,
+          "change": "↑2",
+          "name": "if【肖岚推荐】100%纯椰子水果",
+          "id": "100110442629",
+          "revenue": "¥10万~¥25万",
+          "revenueShare": "2%~-4%",
+          "visitors": "2000~4000",
+          "visitorsChg": "-1.85%",
+          "orders": "800~1000",
+          "ordersShare": "8%~-6%",
+          "search": "1000~2000",
+          "searchChg": "4.35%"
+        },
+        {
+          "rank": 2,
+          "change": "↑2",
+          "name": "轻上牛山苹果四神汤苹果汁儿",
+          "id": "100288911854",
+          "revenue": "¥8万~¥10万",
+          "revenueShare": "0%~-2%",
+          "visitors": "6000~8000",
+          "visitorsChg": "14.69%",
+          "orders": "1000~2000",
+          "ordersShare": "2%~-6%",
+          "search": "4000~6000",
+          "searchChg": "10.86%"
+        },
+        {
+          "rank": 3,
+          "change": "↑3",
+          "name": "三鲸100%NFC椰子水330ml*24",
+          "id": "100020805609",
+          "revenue": "¥6万~¥8万",
+          "revenueShare": "2%~-4%",
+          "visitors": "1000~2000",
+          "visitorsChg": "13.41%",
+          "orders": "400~600",
+          "ordersShare": "4%~-2%",
+          "search": "1000~2000",
+          "searchChg": "9.68%"
+        },
+        {
+          "rank": 4,
+          "change": "↓3",
+          "name": "轻上（LIGHT UPPER）100%椰子",
+          "id": "100103922320",
+          "revenue": "¥6万~¥8万",
+          "revenueShare": "-36%~-34%",
+          "visitors": "6000~8000",
+          "visitorsChg": "3.61%",
+          "orders": "1000~2000",
+          "ordersShare": "8%~-6%",
+          "search": "4000~6000",
+          "searchChg": "-0.32%"
+        },
+        {
+          "rank": 5,
+          "change": "↑2",
+          "name": "农夫山泉100%纯果汁NFC橙汁30",
+          "id": "33135643",
+          "revenue": "¥6万~¥8万",
+          "revenueShare": "4%~-6%",
+          "visitors": "1000~2000",
+          "visitorsChg": "-3.40%",
+          "orders": "200~400",
+          "ordersShare": "2%~0%",
+          "search": "800~1000",
+          "searchChg": "-4.18%"
+        },
+        {
+          "rank": 6,
+          "change": "↓1",
+          "name": "农夫山泉100%纯果汁NFC橙汁30",
+          "id": "53271144",
+          "revenue": "¥6万~¥8万",
+          "revenueShare": "-14%~-12%",
+          "visitors": "2000~4000",
+          "visitorsChg": "-0.27%",
+          "orders": "600~800",
+          "ordersShare": "-4%~-2%",
+          "search": "1000~2000",
+          "searchChg": "-4.25%"
+        },
+        {
+          "rank": 7,
+          "change": "↓6",
+          "name": "可口可乐（Coca-Cola）美汁源",
+          "id": "46046568",
+          "revenue": "¥6万~¥8万",
+          "revenueShare": "-54%~-52%",
+          "visitors": "1000~2000",
+          "visitorsChg": "11.04%",
+          "orders": "400~600",
+          "ordersShare": "-12%~-10%",
+          "search": "800~1200",
+          "searchChg": "10.90%"
+        },
+        {
+          "rank": 8,
+          "change": "新入榜",
+          "name": "冠芳山楂树下山楂汁饮料解腻开胃",
+          "id": "100210105635",
+          "revenue": "¥4万~¥6万",
+          "revenueShare": "432%~-434%",
+          "visitors": "400~600",
+          "visitorsChg": "8.25%",
+          "orders": "50~100",
+          "ordersShare": "-6%~-4%",
+          "search": "200~400",
+          "searchChg": "10.63%"
+        },
+        {
+          "rank": 9,
+          "change": "↓1",
+          "name": "三鲸100%NFC椰子水1L*6瓶富含",
+          "id": "10002760605",
+          "revenue": "¥4万~¥6万",
+          "revenueShare": "-15%~-14%",
+          "visitors": "1000~2000",
+          "visitorsChg": "-3.63%",
+          "orders": "400~600",
+          "ordersShare": "-16%~-14%",
+          "search": "1000~2000",
+          "searchChg": "-7.64%"
+        },
+        {
+          "rank": 10,
+          "change": "↑2",
+          "name": "金豆芽金银花柚子汁儿童饮品夏天",
+          "id": "100069472837",
+          "revenue": "¥4万~¥6万",
+          "revenueShare": "4%~-6%",
+          "visitors": "2000~4000",
+          "visitorsChg": "-1.50%",
+          "orders": "600~800",
+          "ordersShare": "-4%~-2%",
+          "search": "1000~2000",
+          "searchChg": "2.33%"
         }
       ]
     }
