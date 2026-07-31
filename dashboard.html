@@ -314,6 +314,10 @@ tbody tr:nth-child(even) { background:rgba(255,255,255,0.015); }
       <button class="rank-tab" onclick="switchRankTab('spus')">商品SPU</button>
       <button class="rank-tab" onclick="switchRankTab('skus')">商品SKU</button>
     </div>
+    <div class="rank-tabs">
+      <button class="rank-tab active" id="rankModeDaily" onclick="switchRankMode('daily')">📅 每日快照</button>
+      <button class="rank-tab" id="rankModeMonthly" onclick="switchRankMode('monthly')">📊 7月月度汇总</button>
+    </div>
     <select id="rankDate" onchange="renderRankTable()"></select>
   </div>
   <div class="summary-row" id="rankSummary"></div>
@@ -323,7 +327,7 @@ tbody tr:nth-child(even) { background:rgba(255,255,255,0.015); }
     <tbody id="rankBody"></tbody>
   </table>
   </div>
-  <div class="rank-note">数据来源：腾讯文档《耶气满满销售数据》，仅展示已有快照的日期；排名变化 ↑/↓/新入榜 均已标注。</div>
+  <div class="rank-note">数据来源：腾讯文档《耶气满满销售数据》。「每日快照」仅展示已有快照的日期；切到「7月月度汇总」可看 2026-07-01 ~ 07-30 区间榜单（对比 2026-06）。排名变化 ↑/↓/新入榜 均已标注。</div>
 </div>
 
 <!-- 重点 SKU 销售看板 -->
@@ -839,7 +843,33 @@ const RANK_COLS = {
     {key:'search',label:'搜索点击次数'},{key:'searchChg',label:'搜索点击次数同比'}
   ]
 };
+// 月度汇总列定义（字段为区间 Range + 环比 Change，与每日快照不同）
+const MONTHLY_COLS = {
+  shops: [
+    {key:'rank',label:'排名'},{key:'rankChange',label:'排名变化'},{key:'name',label:'店铺名称'},
+    {key:'revenueRange',label:'成交金额(区间)'},{key:'revenueChange',label:'成交金额变动'},
+    {key:'visitorsRange',label:'访客数(区间)'},{key:'visitorsChange',label:'访客数变动'},
+    {key:'ordersRange',label:'成交单量(区间)'},{key:'ordersChange',label:'成交单量变动'},
+    {key:'clicksRange',label:'搜索点击(区间)'},{key:'clicksChange',label:'搜索点击变动'}
+  ],
+  spus: [
+    {key:'rank',label:'排名'},{key:'rankChange',label:'排名变化'},{key:'name',label:'商品名称'},{key:'id',label:'SPU'},
+    {key:'revenueRange',label:'成交金额(区间)'},{key:'revenueChange',label:'成交金额变动'},
+    {key:'visitorsRange',label:'访客数(区间)'},{key:'visitorsChange',label:'访客数变动'},
+    {key:'ordersRange',label:'成交单量(区间)'},{key:'ordersChange',label:'成交单量变动'},
+    {key:'clicksRange',label:'搜索点击(区间)'},{key:'clicksChange',label:'搜索点击变动'}
+  ],
+  skus: [
+    {key:'rank',label:'排名'},{key:'rankChange',label:'排名变化'},{key:'name',label:'商品名称'},{key:'id',label:'SKU'},
+    {key:'revenueRange',label:'成交金额(区间)'},{key:'revenueChange',label:'成交金额变动'},
+    {key:'visitorsRange',label:'访客数(区间)'},{key:'visitorsChange',label:'访客数变动'},
+    {key:'ordersRange',label:'成交单量(区间)'},{key:'ordersChange',label:'成交单量变动'},
+    {key:'clicksRange',label:'搜索点击(区间)'},{key:'clicksChange',label:'搜索点击变动'}
+  ]
+};
 let currentRankTab = 'shops';
+let rankViewMode = 'daily';
+let MONTHLY_DATA = {};
 
 function tabLabel(t){ return t==='shops'?'行业店铺':t==='spus'?'商品SPU':'商品SKU'; }
 
@@ -862,26 +892,44 @@ function switchRankTab(tab) {
   renderRankTable();
 }
 
+function switchRankMode(mode) {
+  rankViewMode = mode;
+  document.getElementById('rankModeDaily').classList.toggle('active', mode === 'daily');
+  document.getElementById('rankModeMonthly').classList.toggle('active', mode === 'monthly');
+  document.getElementById('rankDate').style.display = mode === 'daily' ? 'inline-block' : 'none';
+  renderRankTable();
+}
+
 function renderRankTable() {
-  const date = document.getElementById('rankDate').value;
   const tab = currentRankTab;
-  const cols = RANK_COLS[tab];
-  const rows = RANK_DATA[tab][date] || [];
+  const isMonthly = rankViewMode === 'monthly';
+  const cols = isMonthly ? MONTHLY_COLS[tab] : RANK_COLS[tab];
+  let rows, srcLabel;
+  if (isMonthly) {
+    const period = Object.keys(MONTHLY_DATA)[0] || '2026-07';
+    const mdata = MONTHLY_DATA[period] || {};
+    rows = mdata[tab] || [];
+    srcLabel = '📊 月度汇总（对比 ' + (mdata.comparePeriod || '上期') + '）';
+  } else {
+    const date = document.getElementById('rankDate').value;
+    rows = RANK_DATA[tab][date] || [];
+    srcLabel = '📅 ' + date;
+  }
   document.getElementById('rankHead').innerHTML = '<tr>' + cols.map(c => `<th>${c.label}</th>`).join('') + '</tr>';
   let html = '';
   rows.forEach(r => {
     html += '<tr>' + cols.map(c => {
       let v = r[c.key];
       if (v === undefined || v === null || v === '') v = '—';
-      if (c.key === 'change') {
+      if (c.key === 'change' || c.key === 'rankChange') {
         let cls = 'tag-muted';
         if (v.indexOf('↑') >= 0 || v === '新入榜') cls = 'tag-up';
         else if (v.indexOf('↓') >= 0) cls = 'tag-down';
         return `<td><span class="${cls}">${v}</span></td>`;
       }
       if (c.key === 'rank') {
-        const m = {'1':'🥇','2':'🥈','3':'🥉'};
-        return `<td><span class="medal">${m[v]||v}</span></td>`;
+        const mm = {'1':'🥇','2':'🥈','3':'🥉'};
+        return `<td><span class="medal">${mm[v]||v}</span></td>`;
       }
       if (c.key === 'name') return `<td><strong>${v}</strong></td>`;
       return `<td>${v}</td>`;
@@ -889,7 +937,7 @@ function renderRankTable() {
   });
   document.getElementById('rankBody').innerHTML = html;
   document.getElementById('rankSummary').innerHTML =
-    `<span class="summary-tag">📅 ${date}</span><span class="summary-tag">🏅 ${rows.length} 条</span><span class="summary-tag">📑 ${tabLabel(tab)}</span>`;
+    `<span class="summary-tag">${srcLabel}</span><span class="summary-tag">🏅 ${rows.length} 条</span><span class="summary-tag">📑 ${tabLabel(tab)}</span>`;
 }
 
 
@@ -1027,6 +1075,7 @@ async function boot() {
     const board = await res.json();
     ALL_DATA = board.allData || [];
     RANK_DATA = board.rankData || {};
+    MONTHLY_DATA = board.monthlyRankData || {};
     SKU_SALES = board.skuSales || {};
     SKU_DATES = (SKU_SALES.dates || []).map(l=>{ const p=l.split('月'); const m=+p[0]; const d=+p[1].replace('日',''); return new Date(2026,m-1,d); });
     SKU_BUCKETS = buildBuckets();
