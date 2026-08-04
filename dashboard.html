@@ -1046,7 +1046,7 @@ function renderSku(){
     const skus=SKU_SALES.skus.map((s,si)=>{
       const row={spec:s.spec, idx:si};
       row.metrics=selMetrics.map(mi=>{
-        const k=selMetrics[mi];
+        const k=mi;
         return {key:k, v:aggMetric(s.data[k],pDays,k)};
       });
       row.totalV=row.metrics.reduce((s,m)=>(m.v!=null?s+m.v:s),0);
@@ -1099,9 +1099,9 @@ function renderSku(){
     const datasets=[];
     idxs.forEach(si=>{
       const s=SKU_SALES.skus[si];
-      selMetrics.forEach(mi=>{
-        const k=selMetrics[mi];
-        const mdef=mdefs[mi];
+      selMetrics.forEach((mi,i)=>{
+        const k=mi;
+        const mdef=mdefs[i];
         let data;
         if(skuGran==='d'){ data=s.data[k]; }
         else { data=buckets.map(b=>aggMetric(s.data[k],b.days,k)); }
