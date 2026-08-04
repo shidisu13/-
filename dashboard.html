@@ -197,6 +197,7 @@ tbody tr:nth-child(even) { background:rgba(255,255,255,0.015); }
       <button class="quick-btn" onclick="quickRange('month',5)">5月</button>
       <button class="quick-btn" onclick="quickRange('month',6)">6月</button>
       <button class="quick-btn" onclick="quickRange('month',7)">7月</button>
+      <button class="quick-btn" onclick="quickRange('month',8)">8月</button>
       <button class="quick-btn" onclick="quickRange('all')">全部</button>
       <div class="date-selects">
         <span>或</span>
@@ -285,6 +286,7 @@ tbody tr:nth-child(even) { background:rgba(255,255,255,0.015); }
       <button class="rank-tab" onclick="setTableRange(5)">5月</button>
       <button class="rank-tab" onclick="setTableRange(6)">6月</button>
       <button class="rank-tab" onclick="setTableRange(7)">7月</button>
+      <button class="rank-tab" onclick="setTableRange(8)">8月</button>
     </div>
     <div class="date-selects">
       <span class="tag-muted">或</span>
@@ -880,7 +882,10 @@ function initRankSelector() {
   });
   const sel = document.getElementById('rankDate');
   sel.innerHTML = dates.map(d => `<option value="${d}">${d}</option>`).join('');
-  sel.value = dates.includes('2026/7/19') ? '2026/7/19' : dates[dates.length-1];
+  // 默认显示最新日期（按日期降序取最新；兼容 "YYYY/M/D ~ M/D" 区间写法）
+  const _rankDateVal = s => { const t = s.split('~').pop().trim(); const m = t.match(/(\d{4})\/(\d{1,2})\/(\d{1,2})/); return m ? new Date(+m[1], +m[2]-1, +m[3]) : new Date(0); };
+  const _sortedDates = dates.slice().sort((a,b) => _rankDateVal(a) - _rankDateVal(b));
+  sel.value = _sortedDates.length ? _sortedDates[_sortedDates.length-1] : '';
   renderRankTable();
 }
 
