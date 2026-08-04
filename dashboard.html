@@ -340,7 +340,8 @@ tbody tr:nth-child(even) { background:rgba(255,255,255,0.015); }
       <button class="sku-tab active" onclick="switchSkuMode('h')">⬌ 横向：比规格</button>
       <button class="sku-tab" onclick="switchSkuMode('v')">⬍ 纵向：比日期</button>
     </div>
-    <select id="skuMetric" onchange="renderSku()"></select>
+    <select id="skuMetric" onchange="renderSku()" style="display:none;"></select>
+    <div class="sku-checkboxes" id="skuMetricChecks" style="flex-wrap:wrap;"></div>
   </div>
   <div class="rank-controls">
     <span class="tag-muted">维度</span>
@@ -984,9 +985,11 @@ function aggMetric(values, idxs, metric){
   return vals.reduce((a,b)=>a+b,0);
 }
 function initSku(){
-  const ms=document.getElementById('skuMetric');
-  ms.innerHTML=SKU_METRICS.map(m=>`<option value="${m.key}">${m.key}</option>`).join('');
-  buildSkuPeriod('d','7月15日');
+  // 指标多选 checkbox（默认全选「成交金额」）
+  const mcWrap=document.getElementById('skuMetricChecks');
+  mcWrap.innerHTML=SKU_METRICS.map((m,i)=>`<label class="sku-chk"><input type="checkbox" value="${m.key}" ${i===0?'checked':''} onclick="renderSku()"> ${m.key}</label>`).join('');
+  // 默认选最新日期
+  buildSkuPeriod('d', null);
   const wrap=document.getElementById('skuChecks');
   wrap.innerHTML=SKU_SALES.skus.map((s,i)=>`<label class="sku-chk"><input type="checkbox" value="${i}" checked> ${s.spec}</label>`).join('');
   renderSku();
@@ -994,11 +997,11 @@ function initSku(){
 function buildSkuPeriod(gran, defVal){
   const sel=document.getElementById('skuPeriod');
   let opts=[], def=defVal;
-  if(gran==='d'){ opts=SKU_SALES.dates.map(d=>({v:d,t:d})); if(!defVal) def='7月15日'; }
-  else if(gran==='w'){ opts=SKU_BUCKETS.weeks.map(b=>({v:b.key,t:b.label})); if(!defVal){ const i=SKU_SALES.dates.indexOf('7月15日'); const wk=SKU_BUCKETS.weeks.find(b=>b.days.includes(i)); def=wk?wk.key:opts[opts.length-1].v; } }
-  else { opts=SKU_BUCKETS.months.map(b=>({v:b.key,t:b.label})); if(!defVal) def='7月'; }
+  if(gran==='d'){ opts=SKU_SALES.dates.map(d=>({v:d,t:d})); if(!defVal) def=opts.length?opts[opts.length-1].v:''; }
+  else if(gran==='w'){ opts=SKU_BUCKETS.weeks.map(b=>({v:b.key,t:b.label})); if(!defVal) def=opts.length?opts[opts.length-1].v:''; }
+  else { opts=SKU_BUCKETS.months.map(b=>({v:b.key,t:b.label})); if(!defVal) def=opts.length?opts[opts.length-1].v:''; }
   sel.innerHTML=opts.map(o=>`<option value="${o.v}">${o.t}</option>`).join('');
-  sel.value = opts.some(o=>o.v===def) ? def : opts[opts.length-1].v;
+  sel.value = (def && opts.some(o=>o.v===def)) ? def : (opts.length?opts[opts.length-1].v:'');
   document.getElementById('skuPeriodLabel').textContent = gran==='d'?'日期':gran==='w'?'周':'月';
 }
 function switchSkuMode(m){
@@ -1022,51 +1025,121 @@ function getPeriodDays(){
   return b?b.days:[];
 }
 function renderSku(){
-  const metric=document.getElementById('skuMetric').value;
-  const mdef=SKU_METRICS.find(m=>m.key===metric);
+  // 多选指标
+  const selMetrics=[...document.querySelectorAll('#skuMetricChecks input:checked')].map(c=>c.value);
+  if(selMetrics.length===0) selMetrics.push('成交金额'); // 兜底至少一个
+  const mdefs=selMetrics.map(k=>SKU_METRICS.find(m=>m.key===k));
   const granLabel={d:'日',w:'周',m:'月'}[skuGran];
   if(charts.skuChart){ charts.skuChart.destroy(); charts.skuChart=null; }
   const ctx=document.getElementById('skuChart');
   const palette=[C.primary,C.success,C.warning,C.danger,C.purple,C.pink,C.teal,C.orange,C.blue,C.lime];
+  // 调色板：每个指标一个主色，同指标内部按 SKU 深浅
+  function metricColor(mi,si,alpha){
+    const base=palette[mi%palette.length];
+    if(alpha!==undefined) return base+(alpha<1?Math.round(alpha*255).toString(16).padStart(2,'0'):'');
+    return base;
+  }
   if(skuMode==='h'){
+    // ── 横向：比规格 → 分组柱状图（每 SKU 一组，每组 N 根柱 = N 个指标）──
     const pDays=getPeriodDays();
     const pLabel=document.getElementById('skuPeriod').value + (skuGran==='w'?'（周）':skuGran==='m'?'（月）':'');
-    const pts=SKU_SALES.skus.map(s=>({spec:s.spec, v:aggMetric(s.data[metric],pDays,metric)})).filter(p=>p.v!=null);
-    pts.sort((a,b)=>b.v-a.v);
+    const skus=SKU_SALES.skus.map((s,si)=>{
+      const row={spec:s.spec, idx:si};
+      row.metrics=selMetrics.map(mi=>{
+        const k=selMetrics[mi];
+        return {key:k, v:aggMetric(s.data[k],pDays,k)};
+      });
+      row.totalV=row.metrics.reduce((s,m)=>(m.v!=null?s+m.v:s),0);
+      return row;
+    }).filter(s=>s.totalV>0);
+    skus.sort((a,b)=>b.totalV-a.totalV);
+    // datasets：每个指标一个 dataset
+    const datasets=selMetrics.map((mi,i)=>{
+      const k=selMetrics[i];
+      const mdef=mdefs[i];
+      return {
+        label:k,
+        data:skus.map(s=>s.metrics[i].v),
+        backgroundColor:metricColor(i,0.75),
+        borderColor:metricColor(i,1),
+        borderWidth:1,
+        borderRadius:5
+      };
+    });
     charts.skuChart=new Chart(ctx,{
       type:'bar',
-      data:{ labels:pts.map(p=>p.spec), datasets:[{label:metric+'（'+granLabel+'）', data:pts.map(p=>p.v), backgroundColor:pts.map((p,i)=>palette[i%palette.length]), borderRadius:8}] },
-      options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{callbacks:{label:ctx=>fmtSkuVal(ctx.raw,mdef)}}},
-        scales:{ y:{beginAtZero:true, ticks:{callback:v=>fmtSkuAxis(v,mdef)}}, x:{grid:{display:false}, ticks:{maxRotation:40,minRotation:25,autoSkip:false}} } }
+      data:{ labels:skus.map(s=>s.spec), datasets },
+      options:{ responsive:true, maintainAspectRatio:false,
+        plugins:{legend:{position:'top'}, tooltip:{
+          callbacks:{label:ctx=>{
+            const mi=ctx.datasetIndex;
+            const mdef=mdefs[mi];
+            return ctx.dataset.label+': '+fmtSkuVal(ctx.raw,mdef);
+          }}
+        }},
+        scales:{ y:{beginAtZero:true, ticks:{callback:v=>{
+          // 取第一个有数据的 metric 的格式
+          for(let mi=0;mi<mdefs.length;mi++){ if(mdefs[mi]) return fmtSkuAxis(v,mdefs[mi]); }
+          return v;
+        }}}, x:{grid:{display:false}, ticks:{maxRotation:40,minRotation:25,autoSkip:false}} },
+        interaction:{mode:'index',intersect:false} }
     });
-    const max=pts[0], min=pts[pts.length-1];
     document.getElementById('skuSummary').innerHTML =
-      `<span class="summary-tag">📊 ${metric} · ${granLabel}维度</span>`+
+      `<span class="summary-tag">📊 ${selMetrics.join(' / ')} · ${granLabel}维度</span>`+
       `<span class="summary-tag">🗓️ ${pLabel}</span>`+
-      `<span class="summary-tag">🧮 ${pts.length} 个规格有数据</span>`+
-      (max?`<span class="summary-tag">🥇 最高 ${max.spec} ${fmtSkuVal(max.v,mdef)}</span>`:'')+
-      (min&&pts.length>1?`<span class="summary-tag">🔻 最低 ${min.spec} ${fmtSkuVal(min.v,mdef)}</span>`:'');
+      `<span class="summary-tag">🧮 ${skus.length} 个规格</span>`+
+      `<span class="summary-tag">📐 对比 ${selMetrics.length} 个指标</span>`;
   } else {
+    // ── 纵向：比日期 → 折线图（每条线 = 一个指标 × 一个 SKU；或纯多指标对比）──
     const buckets = skuGran==='w'?SKU_BUCKETS.weeks:SKU_BUCKETS.months;
     const labels = skuGran==='d'?SKU_SALES.dates:buckets.map(b=>b.label);
     const idxs=[...document.querySelectorAll('#skuChecks input:checked')].map(c=>+c.value);
-    const datasets = idxs.map((i,k)=>{
-      const s=SKU_SALES.skus[i];
-      let data;
-      if(skuGran==='d'){ data=s.data[metric]; }
-      else { data=buckets.map(b=>aggMetric(s.data[metric],b.days,metric)); }
-      return {label:s.spec, data, borderColor:palette[k%palette.length], backgroundColor:palette[k%palette.length], fill:false, tension:0.35, spanGaps:true, pointRadius: skuGran==='d'?0:3, pointHoverRadius:5, borderWidth:2};
+    // 每个选中 SKU × 每个选中指标 = 一条线
+    let di=0;
+    const datasets=[];
+    idxs.forEach(si=>{
+      const s=SKU_SALES.skus[si];
+      selMetrics.forEach(mi=>{
+        const k=selMetrics[mi];
+        const mdef=mdefs[mi];
+        let data;
+        if(skuGran==='d'){ data=s.data[k]; }
+        else { data=buckets.map(b=>aggMetric(s.data[k],b.days,k)); }
+        datasets.push({
+          label:s.spec+' · '+k,
+          data,
+          borderColor:palette[di%palette.length],
+          backgroundColor:palette[di%palette.length],
+          fill:false,
+          tension:0.35,
+          spanGaps:true,
+          pointRadius: skuGran==='d'?0:3,
+          pointHoverRadius:5,
+          borderWidth:2
+        });
+        di++;
+      });
     });
     charts.skuChart=new Chart(ctx,{
       type:'line',
       data:{ labels, datasets },
-      options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false}, plugins:{legend:{position:'bottom'}, tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+fmtSkuVal(ctx.raw,mdef)}}},
-        scales:{ y:{beginAtZero: metric!=='成交转化率', ticks:{callback:v=>fmtSkuAxis(v,mdef)}}, x:{ticks:{maxTicksLimit: skuGran==='d'?20:18, autoSkip:true}} } }
+      options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
+        plugins:{legend:{position:'bottom', labels:{padding:12, font:{size:11}, filter:(item,chart)=>item.text.length<40}}, tooltip:{callbacks:{label:ctx=>{
+          // 从 label 中提取 metric key
+          const parts=ctx.dataset.label.split(' · ');
+          const mk=parts.length>1?parts[1]:parts[0];
+          const md=SKU_METRICS.find(m=>m.key===mk)||mdefs[0];
+          return ctx.dataset.label+': '+fmtSkuVal(ctx.raw,md);
+        }}}},
+        scales:{ y:{beginAtZero: selMetrics.every(k=>k!=='成交转化率'), ticks:{callback:v=>{
+          for(let mi=0;mi<mdefs.length;mi++){ if(mdefs[mi]) return fmtSkuAxis(v,mdefs[mi]); }
+          return v;
+        }}}, x:{ticks:{maxTicksLimit: skuGran==='d'?20:18, autoSkip:true}} } }
     });
     const range = skuGran==='d' ? (SKU_SALES.dates[0]+' ~ '+SKU_SALES.dates[SKU_SALES.dates.length-1]) : (labels[0]+' ~ '+labels[labels.length-1]);
     document.getElementById('skuSummary').innerHTML =
-      `<span class="summary-tag">📊 ${metric} · ${granLabel}维度</span>`+
-      `<span class="summary-tag">🧮 对比 ${idxs.length} 个规格</span>`+
+      `<span class="summary-tag">📊 ${selMetrics.join(' / ')}</span>`+
+      `<span class="summary-tag">🧮 ${idxs.length} 规格 × ${selMetrics.length} 指标 = ${datasets.length} 条线</span>`+
       `<span class="summary-tag">📅 ${range}</span>`;
   }
 }
