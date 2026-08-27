@@ -11599,7 +11599,7 @@ null,
 "ordersChg": "0%~2%",
 "search": "4,000~6,000",
 "searchChg": "-5.52%",
-"change": "↑3"
+"change": "↑1"
 },
 {
 "rank": "2",
@@ -11625,7 +11625,7 @@ null,
 "ordersChg": "2%~4%",
 "search": "2,000~4,000",
 "searchChg": "-3.07%",
-"change": "↓1"
+"change": "持平"
 },
 {
 "rank": "4",
@@ -11651,7 +11651,7 @@ null,
 "ordersChg": "-2%~0%",
 "search": "2,000~4,000",
 "searchChg": "-7.88%",
-"change": "新"
+"change": "新入榜"
 },
 {
 "rank": "6",
@@ -11677,7 +11677,7 @@ null,
 "ordersChg": "-6%~-4%",
 "search": "4,000~6,000",
 "searchChg": "-1.98%",
-"change": "持平"
+"change": "↑1"
 },
 {
 "rank": "8",
@@ -11690,7 +11690,7 @@ null,
 "ordersChg": "-2%~0%",
 "search": "6,000~8,000",
 "searchChg": "-2.49%",
-"change": "持平"
+"change": "↓1"
 },
 {
 "rank": "9",
@@ -11703,7 +11703,7 @@ null,
 "ordersChg": "-8%~-6%",
 "search": "6,000~8,000",
 "searchChg": "+1.48%",
-"change": "新"
+"change": "新入榜"
 },
 {
 "rank": "10",
@@ -11716,7 +11716,7 @@ null,
 "ordersChg": "10%~12%",
 "search": "2,000~4,000",
 "searchChg": "+6.67%",
-"change": "新"
+"change": "新入榜"
 }
 ]
 },
@@ -11890,7 +11890,7 @@ null,
 "ordersShare": "4%~6%",
 "search": "2,000~4,000",
 "searchChg": "-0.87%",
-"change": "↓1"
+"change": "↑2"
 },
 {
 "rank": "3",
@@ -11904,7 +11904,7 @@ null,
 "ordersShare": "0%~2%",
 "search": "2,000~4,000",
 "searchChg": "-6.17%",
-"change": "↓1"
+"change": "↑2"
 },
 {
 "rank": "4",
@@ -11918,7 +11918,7 @@ null,
 "ordersShare": "14%~16%",
 "search": "2,000~4,000",
 "searchChg": "+19.54%",
-"change": "↓1"
+"change": "↑3"
 },
 {
 "rank": "5",
@@ -11932,7 +11932,7 @@ null,
 "ordersShare": "-10%~-8%",
 "search": "2,000~4,000",
 "searchChg": "-4.52%",
-"change": "↓1"
+"change": "↑4"
 },
 {
 "rank": "6",
@@ -11946,7 +11946,7 @@ null,
 "ordersShare": "-2%~0%",
 "search": "6,000~8,000",
 "searchChg": "+2.88%",
-"change": "↓1"
+"change": "↑4"
 },
 {
 "rank": "7",
@@ -11960,7 +11960,7 @@ null,
 "ordersShare": "-10%~-8%",
 "search": "1,000~2,000",
 "searchChg": "-9.26%",
-"change": "持平"
+"change": "新入榜"
 },
 {
 "rank": "8",
@@ -11974,7 +11974,7 @@ null,
 "ordersShare": "-10%~-8%",
 "search": "4,000~6,000",
 "searchChg": "-15.39%",
-"change": "↑1"
+"change": "新入榜"
 },
 {
 "rank": "9",
@@ -11988,7 +11988,7 @@ null,
 "ordersShare": "-2%~0%",
 "search": "1,000~2,000",
 "searchChg": "-4.13%",
-"change": "↑1"
+"change": "新入榜"
 },
 {
 "rank": "10",
@@ -12002,7 +12002,7 @@ null,
 "ordersShare": "2%~4%",
 "search": "1,000~2,000",
 "searchChg": "-5.23%",
-"change": "新"
+"change": "新入榜"
 }
 ]
 },
@@ -12162,7 +12162,7 @@ null,
 "ordersShare": "34%~36%",
 "search": "200~400",
 "searchChg": "0.00%",
-"change": "新"
+"change": "新入榜"
 },
 {
 "rank": "2",
@@ -12176,7 +12176,7 @@ null,
 "ordersShare": "12%~14%",
 "search": "1,000~2,000",
 "searchChg": "+39.40%",
-"change": "↓1"
+"change": "↑5"
 },
 {
 "rank": "3",
@@ -12190,7 +12190,7 @@ null,
 "ordersShare": "6%~8%",
 "search": "600~800",
 "searchChg": "+15.47%",
-"change": "持平"
+"change": "↑7"
 },
 {
 "rank": "4",
@@ -12204,7 +12204,7 @@ null,
 "ordersShare": "-2%~0%",
 "search": "4,000~6,000",
 "searchChg": "+6.70%",
-"change": "持平"
+"change": "↑4"
 },
 {
 "rank": "5",
@@ -12218,7 +12218,7 @@ null,
 "ordersShare": "-2%~0%",
 "search": "1,000~2,000",
 "searchChg": "+3.96%",
-"change": "↑1"
+"change": "持平"
 },
 {
 "rank": "6",
@@ -12232,7 +12232,7 @@ null,
 "ordersShare": "12%~14%",
 "search": "600~1,000",
 "searchChg": "-9.20%",
-"change": "↑2"
+"change": "持平"
 },
 {
 "rank": "7",
@@ -12246,7 +12246,7 @@ null,
 "ordersShare": "-2%~0%",
 "search": "400~600",
 "searchChg": "-19.70%",
-"change": "持平"
+"change": "新入榜"
 },
 {
 "rank": "8",
@@ -12260,7 +12260,7 @@ null,
 "ordersShare": "6%~8%",
 "search": "1,000~2,000",
 "searchChg": "+1.95%",
-"change": "↑1"
+"change": "新入榜"
 },
 {
 "rank": "9",
@@ -12274,7 +12274,7 @@ null,
 "ordersShare": "4%~6%",
 "search": "800~1,000",
 "searchChg": "-7.68%",
-"change": "↑1"
+"change": "新入榜"
 },
 {
 "rank": "10",
@@ -12288,7 +12288,7 @@ null,
 "ordersShare": "20%~22%",
 "search": "1,000~2,000",
 "searchChg": "-0.58%",
-"change": "新"
+"change": "新入榜"
 }
 ]
 }
